@@ -1,4 +1,12 @@
-import { Flex, Text, Input, Button, Stack, useToast } from '@chakra-ui/react';
+import {
+	Flex,
+	Text,
+	Input,
+	Button,
+	Stack,
+	useToast,
+	HStack,
+} from '@chakra-ui/react';
 import { useState } from 'react';
 
 type GraphData = {
@@ -41,7 +49,44 @@ const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 			nodes: [...graphData.nodes, { id: nodeValue, name: nodeValue }],
 			links: [...graphData.links],
 		});
+		setNodeValue('');
 	};
+
+	const handleDeleteNode = () => {
+		if (nodeValue === '') {
+			toast({
+				title: 'node value is empty',
+				description: 'node value cannot be empty',
+				status: 'info',
+				duration: 3000,
+				isClosable: true,
+				position: 'top',
+			});
+			return;
+		}
+		if (!graphData.nodes.find((node) => node.id === nodeValue)) {
+			toast({
+				title: 'node does not exist',
+				description: `node ${nodeValue} does not exist`,
+				status: 'error',
+				duration: 3000,
+				isClosable: true,
+				position: 'top',
+			});
+			return;
+		}
+		setGraphData({
+			nodes: [...graphData.nodes.filter((node) => node.id !== nodeValue)],
+			links: [
+				...graphData.links.filter(
+					// @ts-expect-error: source and target MIGHT not be defined on type {source: string, target: string}, but react-force-graph handles them differently
+					(link) => link.source.id !== nodeValue && link.target.id !== nodeValue
+				),
+			],
+		});
+		setNodeValue('');
+	};
+
 	return (
 		<Flex
 			// width="100%"
@@ -60,14 +105,24 @@ const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 					onChange={(e) => setNodeValue(e.target.value)}
 					placeholder="value"
 				/>
-				<Button
-					colorScheme="teal"
-					variant={'outline'}
-					width="100px"
-					onClick={handleAddNode}
-				>
-					add node
-				</Button>
+				<HStack>
+					<Button
+						colorScheme="teal"
+						variant={'outline'}
+						width="100px"
+						onClick={handleAddNode}
+					>
+						add node
+					</Button>
+					<Button
+						colorScheme="red"
+						variant={'outline'}
+						width="100px"
+						onClick={handleDeleteNode}
+					>
+						delete node
+					</Button>
+				</HStack>
 			</Stack>
 		</Flex>
 	);
@@ -77,6 +132,10 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 	const [source, setSource] = useState('');
 	const [target, setTarget] = useState('');
 	const toast = useToast();
+	const reset = () => {
+		setSource('');
+		setTarget('');
+	};
 	const handleAddEdge = () => {
 		if (source === '' || target === '') {
 			toast({
@@ -142,6 +201,7 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 				links: [...graphData.links, { source: source, target: target }],
 			});
 		}
+		reset();
 	};
 	return (
 		<Flex

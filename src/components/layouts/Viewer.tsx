@@ -3,6 +3,8 @@ import { ForceGraph2D } from 'react-force-graph';
 import { useState } from 'react';
 import Wrapper from './Wrapper';
 import { NodesPanel, EdgesPanel } from '../panels/NodesPanel';
+import ModesPanel from '../panels/ModesPanel';
+import GraphEditor from '../panels/GraphEditor';
 
 const defaultGraphData = {
 	nodes: [
@@ -31,7 +33,9 @@ const Viewer = () => {
 	return (
 		<Wrapper>
 			<Grid gridTemplateColumns={'2fr 5fr 0.1fr 2.5fr'} maxW={'100%'}>
-				<Box></Box>
+				<Box>
+					<ModesPanel />
+				</Box>
 				<Box
 					border="2px solid white"
 					width={'100%'}
@@ -87,6 +91,7 @@ const Viewer = () => {
 					<Flex flexDirection={'column'}>
 						<NodesPanel graphData={graphData} setGraphData={setGraphData} />
 						<EdgesPanel graphData={graphData} setGraphData={setGraphData} />
+						<GraphEditor graphData={graphData} setGraphData={setGraphData} />
 					</Flex>
 				</Box>
 			</Grid>
