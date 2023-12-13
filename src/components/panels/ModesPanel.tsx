@@ -1,17 +1,25 @@
-import { Flex, Select } from '@chakra-ui/react';
+import { Flex, Select, Text, VStack } from '@chakra-ui/react';
+import { useMode } from '../../../contexts/ModeContext.hook';
 
 const ModesPanel = () => {
+	const { mode, setMode } = useMode();
 	return (
 		<Flex
-			// width="100%"
+			width="100%"
 			// height="200px"
 			bg="#1e1e2e"
 			color="#cdd6f4"
 			p={3}
 			border="2px solid rgb(205, 214, 244, 0.6)"
 			borderRadius={'8px'}
+			flexDir={'column'}
 		>
-			<Select placeholder="select mode">
+			<Text mb={2}>select mode</Text>
+			<Select
+				defaultValue={'undir_g'}
+				onChange={(e) => setMode(e.target.value)}
+				value={mode}
+			>
 				<option value="undir_g">undirected graph</option>
 				<option value="dir_g">directed graph</option>
 				<option value="bst">binary tree</option>

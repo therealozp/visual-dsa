@@ -5,32 +5,22 @@ import Wrapper from './Wrapper';
 import { NodesPanel, EdgesPanel } from '../panels/NodesPanel';
 import ModesPanel from '../panels/ModesPanel';
 import GraphEditor from '../panels/GraphEditor';
-
-const defaultGraphData = {
-	nodes: [
-		{ id: '1', name: '1' },
-		{ id: '2', name: '2' },
-		{ id: '3', name: '3' },
-		{ id: '4', name: '4' },
-		{ id: '5', name: '5' },
-		{ id: '6', name: '6' },
-	],
-	links: [
-		{ source: '1', target: '2' },
-		{ source: '1', target: '3' },
-		{ source: '2', target: '4' },
-		{ source: '2', target: '5' },
-		{ source: '3', target: '6' },
-	],
-};
+import {
+	defaultUndirectedGraphData,
+	defaultDirectedGraphData,
+	defaultBinaryTreeData,
+	defaultWeightedGraphData,
+} from '../../utils/dummyGraphData';
+import { useMode } from '../../../contexts/ModeContext.hook';
 
 const Viewer = () => {
-	const [graphData, setGraphData] = useState(defaultGraphData);
+	const [graphData, setGraphData] = useState(defaultUndirectedGraphData);
 	const [graphDimensions, setGraphDimensions] = useState({
 		width: 720,
 		height: 640,
 	});
 
+	const { mode } = useMode();
 	const [isLargeScreen] = useMediaQuery('(min-width: 1560px)');
 	const [isMediumScreen] = useMediaQuery('(min-width: 1024px)');
 	const [isTabletScreen] = useMediaQuery('(min-width: 768px)');
@@ -46,6 +36,38 @@ const Viewer = () => {
 			setGraphDimensions({ width: 480, height: 480 });
 		}
 	}, [isLargeScreen, isMediumScreen, isTabletScreen]);
+
+	useEffect(() => {
+		switch (mode) {
+			case 'undir_g':
+				setGraphData(defaultUndirectedGraphData);
+				break;
+			case 'dir_g':
+				setGraphData(defaultDirectedGraphData);
+				break;
+			case 'bst':
+				setGraphData(defaultBinaryTreeData);
+				break;
+			case 'linked_list':
+				setGraphData(defaultBinaryTreeData);
+				break;
+			case 'stack':
+				setGraphData(defaultBinaryTreeData);
+				break;
+			case 'queue':
+				setGraphData(defaultBinaryTreeData);
+				break;
+			case 'heap':
+				setGraphData(defaultBinaryTreeData);
+				break;
+			case 'weighted_g':
+				setGraphData(defaultWeightedGraphData);
+				break;
+			default:
+				setGraphData(defaultUndirectedGraphData);
+				break;
+		}
+	}, [mode]);
 
 	const scaleMultiplier = 0.3;
 	const textScaleMultiplier = 0.2;
@@ -69,6 +91,7 @@ const Viewer = () => {
 						backgroundColor="#181825"
 						linkColor={() => '#fff'}
 						nodeCanvasObjectMode={() => 'replace'}
+						linkDirectionalArrowLength={mode == 'dir_g' ? 3.5 : 0}
 						// dagMode="null"
 						nodeCanvasObject={(node, ctx, globalScale) => {
 							const label = node.name;

@@ -81,6 +81,7 @@ const GraphEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
 			color="#cdd6f4"
 			border="2px solid rgb(205, 214, 244, 0.6)"
 			borderRadius={'8px'}
+			width={'100%'}
 		>
 			<Textarea
 				placeholder="Enter adjacency list here"

@@ -89,7 +89,7 @@ const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 
 	return (
 		<Flex
-			// width="100%"
+			width="100%"
 			// height="200px"
 			bg="#1e1e2e"
 			color="#cdd6f4"
@@ -205,7 +205,7 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 	};
 	return (
 		<Flex
-			// width="100%"
+			width="100%"
 			// height="200px"
 			bg="#1e1e2e"
 			color="#cdd6f4"
