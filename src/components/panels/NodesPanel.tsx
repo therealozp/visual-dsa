@@ -93,8 +93,8 @@ const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 			// height="200px"
 			bg="#1e1e2e"
 			color="#cdd6f4"
-			m={3}
 			p={3}
+			mt={0}
 			border="2px solid rgb(205, 214, 244, 0.6)"
 			borderRadius={'8px'}
 		>
@@ -209,7 +209,6 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 			// height="200px"
 			bg="#1e1e2e"
 			color="#cdd6f4"
-			m={3}
 			p={3}
 			border="2px solid rgb(205, 214, 244, 0.6)"
 			borderRadius={'8px'}

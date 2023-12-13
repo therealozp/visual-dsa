@@ -1,6 +1,6 @@
-import { Box, Flex, Grid } from '@chakra-ui/react';
+import { Box, Flex, Grid, VStack, useMediaQuery } from '@chakra-ui/react';
 import { ForceGraph2D } from 'react-force-graph';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Wrapper from './Wrapper';
 import { NodesPanel, EdgesPanel } from '../panels/NodesPanel';
 import ModesPanel from '../panels/ModesPanel';
@@ -26,28 +26,46 @@ const defaultGraphData = {
 
 const Viewer = () => {
 	const [graphData, setGraphData] = useState(defaultGraphData);
-	const graphWidth = 1280;
-	const graphHeight = 720;
+	const [graphDimensions, setGraphDimensions] = useState({
+		width: 720,
+		height: 640,
+	});
+
+	const [isLargeScreen] = useMediaQuery('(min-width: 1560px)');
+	const [isMediumScreen] = useMediaQuery('(min-width: 1024px)');
+	const [isTabletScreen] = useMediaQuery('(min-width: 768px)');
+
+	useEffect(() => {
+		if (isLargeScreen) {
+			setGraphDimensions({ width: 1280, height: 720 });
+		} else if (isMediumScreen) {
+			setGraphDimensions({ width: 1024, height: 560 });
+		} else if (isTabletScreen) {
+			setGraphDimensions({ width: 768, height: 480 });
+		} else {
+			setGraphDimensions({ width: 480, height: 480 });
+		}
+	}, [isLargeScreen, isMediumScreen, isTabletScreen]);
+
 	const scaleMultiplier = 0.3;
 	const textScaleMultiplier = 0.2;
 	return (
 		<Wrapper>
-			<Grid gridTemplateColumns={'2fr 5fr 0.1fr 2.5fr'} maxW={'100%'}>
-				<Box>
-					<ModesPanel />
-				</Box>
-				<Box
+			<Grid gridTemplateColumns={'5fr 2.3fr 2.7fr'} maxW={'100%'}>
+				<Flex
 					border="2px solid white"
-					width={'100%'}
-					height={'100%'}
+					width={graphDimensions.width + 15}
+					height={graphDimensions.height + 15}
 					borderRadius={'10px'}
 					p={2}
-					m={3}
+					m={4}
+					alignItems={'center'}
+					justifyContent={'center'}
 				>
 					<ForceGraph2D
 						graphData={graphData}
-						width={graphWidth}
-						height={graphHeight}
+						width={graphDimensions.width}
+						height={graphDimensions.height}
 						backgroundColor="#181825"
 						linkColor={() => '#fff'}
 						nodeCanvasObjectMode={() => 'replace'}
@@ -85,14 +103,18 @@ const Viewer = () => {
 							dims && ctx.fill();
 						}}
 					/>
-				</Box>
-				<Box />
+				</Flex>
 				<Box>
-					<Flex flexDirection={'column'}>
+					<VStack mt={4} spacing={2}>
+						<ModesPanel />
+					</VStack>
+				</Box>
+				<Box>
+					<VStack m={4} spacing={4}>
 						<NodesPanel graphData={graphData} setGraphData={setGraphData} />
 						<EdgesPanel graphData={graphData} setGraphData={setGraphData} />
 						<GraphEditor graphData={graphData} setGraphData={setGraphData} />
-					</Flex>
+					</VStack>
 				</Box>
 			</Grid>
 		</Wrapper>

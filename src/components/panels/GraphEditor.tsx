@@ -79,7 +79,6 @@ const GraphEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
 		<Box
 			bg="#1e1e2e"
 			color="#cdd6f4"
-			m={3}
 			border="2px solid rgb(205, 214, 244, 0.6)"
 			borderRadius={'8px'}
 		>
