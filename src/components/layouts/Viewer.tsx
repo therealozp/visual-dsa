@@ -3,6 +3,7 @@ import { ForceGraph2D } from 'react-force-graph';
 import { useEffect, useState } from 'react';
 import Wrapper from './Wrapper';
 import { NodesPanel, EdgesPanel } from '../panels/NodesPanel';
+import { BinaryTreePanel } from '../panels/BinaryTreePanel';
 import ModesPanel from '../panels/ModesPanel';
 import GraphEditor from '../panels/GraphEditor';
 import {
@@ -137,8 +138,18 @@ const Viewer = () => {
 				</Box>
 				<Box>
 					<VStack m={4} spacing={4}>
-						<NodesPanel graphData={graphData} setGraphData={setGraphData} />
-						<EdgesPanel graphData={graphData} setGraphData={setGraphData} />
+						{mode == 'bst' ? (
+							<BinaryTreePanel
+								graphData={graphData}
+								setGraphData={setGraphData}
+							/>
+						) : (
+							<>
+								<NodesPanel graphData={graphData} setGraphData={setGraphData} />
+								<EdgesPanel graphData={graphData} setGraphData={setGraphData} />
+							</>
+						)}
+
 						<GraphEditor graphData={graphData} setGraphData={setGraphData} />
 					</VStack>
 				</Box>

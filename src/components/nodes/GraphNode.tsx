@@ -18,8 +18,6 @@ const GraphNode = ({ value }: GraphNodeProps) => {
 			fontSize={'24px'}
 			bg="transparent"
 			position="absolute"
-			left={`${x}px`}
-			top={`${y}px`}
 		>
 			{value}
 		</Flex>

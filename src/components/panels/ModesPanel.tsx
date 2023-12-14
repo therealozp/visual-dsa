@@ -15,11 +15,7 @@ const ModesPanel = () => {
 			flexDir={'column'}
 		>
 			<Text mb={2}>select mode</Text>
-			<Select
-				defaultValue={'undir_g'}
-				onChange={(e) => setMode(e.target.value)}
-				value={mode}
-			>
+			<Select onChange={(e) => setMode(e.target.value)} value={mode}>
 				<option value="undir_g">undirected graph</option>
 				<option value="dir_g">directed graph</option>
 				<option value="bst">binary tree</option>

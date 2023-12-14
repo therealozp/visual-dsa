@@ -1,35 +1,30 @@
 import {
 	GraphData,
 	AdjacencyList,
-	Node,
-	Edge,
+	GraphNode,
+	GraphEdge,
 	BinaryTreeArray,
 } from '../components/interfaces/graph.interfaces';
 
 const convertAdjacencyListToGraphData = (
 	adjacencyList: AdjacencyList
 ): GraphData => {
-	const nodes: Node[] = [];
-	const links: Edge[] = [];
+	const nodes: GraphNode[] = [];
+	const links: GraphEdge[] = [];
 
 	// Create nodes from adjacency list keys
-	try {
-		Object.keys(adjacencyList).forEach((key) => {
-			nodes.push({ id: key, name: key });
-		});
+	Object.keys(adjacencyList).forEach((key) => {
+		nodes.push({ id: key, name: key });
+	});
 
-		// Create links (edges) based on adjacency list
-		Object.entries(adjacencyList).forEach(([sourceId, targets]) => {
-			targets.forEach((targetId) => {
-				links.push({ source: sourceId, target: targetId });
-			});
+	// Create links (edges) based on adjacency list
+	Object.entries(adjacencyList).forEach(([sourceId, targets]) => {
+		targets.forEach((targetId) => {
+			links.push({ source: sourceId, target: targetId });
 		});
+	});
 
-		return { nodes, links };
-	} catch (error) {
-		console.log('from function', error);
-		throw new Error('Invalid adjacency list');
-	}
+	return { nodes, links };
 };
 
 const convertGraphDataToAdjacencyList = (
@@ -61,30 +56,76 @@ const convertGraphDataToAdjacencyList = (
 };
 
 const convertBinaryTreeArrayToGraphData = (arr: BinaryTreeArray): GraphData => {
-	try {
-		const nodes: Node[] = [];
-		const links: Edge[] = [];
+	const conversion = (node: number | string | null, index: number) => {
+		if (node == 'null' || node == null) return null;
+		return { id: node.toString(), name: node.toString(), index: index };
+	};
 
-		// Create nodes from adjacency list keys
-		for (let i = 0; i < arr.length; i++) {
-			nodes.push({ id: arr[i], name: arr[i], index: i });
-			if (2 * i + 1 < arr.length) {
-				links.push({ source: arr[i], target: arr[2 * i + 1] });
-			}
-			if (2 * i + 2 < arr.length) {
-				links.push({ source: arr[i], target: arr[2 * i + 2] });
-			}
+	if (arr.length === 0) return { nodes: [], links: [] };
+
+	const nodes = arr
+		.map((node, index) => conversion(node, index))
+		.filter((node) => node != null);
+	const links: GraphEdge[] = [];
+
+	// Create nodes from adjacency list keys
+	for (let i = 0; i < arr.length; i++) {
+		if (arr[i] == null && (arr[2 * i + 1] != null || arr[2 * i + 2] != null)) {
+			throw new Error('There is a null value with children in the array!');
 		}
-
-		return { nodes, links };
-	} catch (error) {
-		console.log('from function', error);
-		throw new Error('Invalid adjacency list');
+		if (2 * i + 1 < arr.length && arr[2 * i + 1] != null) {
+			links.push({ source: arr[i], target: arr[2 * i + 1] });
+		}
+		if (2 * i + 2 < arr.length && arr[2 * i + 2] != null) {
+			links.push({ source: arr[i], target: arr[2 * i + 2] });
+		}
 	}
+
+	// console.log('nodes from binary parse: ', nodes);
+	// console.log('links: ', links);
+
+	return { nodes, links };
 };
 
-const convertGraphDatatoBinaryTreeArray = (graphData: GraphData): BinaryTreeArray => {
-	const arr = [0 * graphData.nodes.length]; 
-	for ()
-}
-export { convertAdjacencyListToGraphData, convertGraphDataToAdjacencyList };
+const convertGraphDataToBinaryTreeArray = (
+	graphData: GraphData
+): BinaryTreeArray => {
+	const nodeIndexMap = new Map();
+
+	if (graphData.nodes.length === 0) return [];
+
+	graphData.nodes.forEach((node) => {
+		if (node.index !== undefined) {
+			nodeIndexMap.set(node.id, node.index);
+		}
+	});
+
+	// Find the maximum index to determine the size of the binary tree array
+	const maxSize = Math.max(...Array.from(nodeIndexMap.values())) + 1;
+	const binaryTreeArray = new Array(maxSize).fill(null);
+
+	graphData.links.forEach((link) => {
+		const parentIndex = nodeIndexMap.get(link.source);
+		const childIndex = nodeIndexMap.get(link.target);
+		if (
+			childIndex === 2 * parentIndex + 1 ||
+			childIndex === 2 * parentIndex + 2
+		) {
+			binaryTreeArray[childIndex] = link.target;
+		}
+	});
+
+	// Fill in the non-null nodes
+	nodeIndexMap.forEach((index, nodeId) => {
+		binaryTreeArray[index] = nodeId;
+	});
+
+	return binaryTreeArray;
+};
+
+export {
+	convertAdjacencyListToGraphData,
+	convertGraphDataToAdjacencyList,
+	convertBinaryTreeArrayToGraphData,
+	convertGraphDataToBinaryTreeArray,
+};
