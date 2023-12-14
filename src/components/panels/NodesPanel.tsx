@@ -8,11 +8,8 @@ import {
 	HStack,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-
-type GraphData = {
-	nodes: { id: string; name: string }[];
-	links: { source: string; target: string }[];
-};
+import { useMode } from '../../../contexts/ModeContext.hook';
+import { GraphData } from '../interfaces/graph.interfaces';
 
 interface PanelProps {
 	graphData: GraphData;
@@ -131,6 +128,7 @@ const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 	const [source, setSource] = useState('');
 	const [target, setTarget] = useState('');
+	const { mode } = useMode();
 	const toast = useToast();
 	const reset = () => {
 		setSource('');
@@ -165,14 +163,32 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 				);
 			})
 		) {
-			toast({
-				title: 'edge already exists',
-				description: `edge from ${source} to ${target} already exists`,
-				status: 'error',
-				duration: 3000,
-				isClosable: true,
-				position: 'top',
-			});
+			if (
+				mode === 'dir_g' &&
+				!graphData.links.some((link) => {
+					// @ts-expect-error: source and target MIGHT not be defined on type {source: string, target: string}, but react-force-graph handles them differently
+					const sourceId = link.source.id;
+					// @ts-expect-error: same as the above
+					const targetId = link.target.id;
+
+					return sourceId === source && targetId === target;
+				})
+			) {
+				setGraphData({
+					nodes: [...graphData.nodes],
+					links: [...graphData.links, { source: source, target: target }],
+				});
+			} else {
+				toast({
+					title: 'edge already exists',
+					description: `edge from ${source} to ${target} already exists`,
+					status: 'error',
+					duration: 3000,
+					isClosable: true,
+					position: 'top',
+				});
+			}
+
 			return;
 		}
 

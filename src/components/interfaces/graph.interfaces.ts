@@ -1,6 +1,7 @@
 type Node = {
 	id: string;
 	name: string;
+	index?: number; // Used for binary trees
 };
 
 type Edge = {
@@ -17,4 +18,8 @@ type AdjacencyList = {
 	[key: string]: string[];
 };
 
-export type { GraphData, AdjacencyList, Node, Edge };
+type BinaryTreeArray = {
+	[key: string]: string[];
+};
+
+export type { GraphData, AdjacencyList, Node, Edge, BinaryTreeArray };

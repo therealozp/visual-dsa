@@ -92,6 +92,9 @@ const Viewer = () => {
 						linkColor={() => '#fff'}
 						nodeCanvasObjectMode={() => 'replace'}
 						linkDirectionalArrowLength={mode == 'dir_g' ? 3.5 : 0}
+						linkCurvature={mode == 'dir_g' ? 0.25 : 0}
+						dagMode={mode == 'bst' ? 'td' : undefined}
+						dagLevelDistance={20}
 						// dagMode="null"
 						nodeCanvasObject={(node, ctx, globalScale) => {
 							const label = node.name;

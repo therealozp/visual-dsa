@@ -3,6 +3,7 @@ import {
 	AdjacencyList,
 	Node,
 	Edge,
+	BinaryTreeArray,
 } from '../components/interfaces/graph.interfaces';
 
 const convertAdjacencyListToGraphData = (
@@ -58,4 +59,32 @@ const convertGraphDataToAdjacencyList = (
 
 	return adjacencyList;
 };
+
+const convertBinaryTreeArrayToGraphData = (arr: BinaryTreeArray): GraphData => {
+	try {
+		const nodes: Node[] = [];
+		const links: Edge[] = [];
+
+		// Create nodes from adjacency list keys
+		for (let i = 0; i < arr.length; i++) {
+			nodes.push({ id: arr[i], name: arr[i], index: i });
+			if (2 * i + 1 < arr.length) {
+				links.push({ source: arr[i], target: arr[2 * i + 1] });
+			}
+			if (2 * i + 2 < arr.length) {
+				links.push({ source: arr[i], target: arr[2 * i + 2] });
+			}
+		}
+
+		return { nodes, links };
+	} catch (error) {
+		console.log('from function', error);
+		throw new Error('Invalid adjacency list');
+	}
+};
+
+const convertGraphDatatoBinaryTreeArray = (graphData: GraphData): BinaryTreeArray => {
+	const arr = [0 * graphData.nodes.length]; 
+	for ()
+}
 export { convertAdjacencyListToGraphData, convertGraphDataToAdjacencyList };
