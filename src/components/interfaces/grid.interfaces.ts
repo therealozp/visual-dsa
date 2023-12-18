@@ -1,8 +1,6 @@
 type GridNode = {
 	row: number;
 	column: number;
-	isStart: boolean;
-	isEnd: boolean;
 	visited: boolean;
 	obstacle: boolean;
 	distance: number;

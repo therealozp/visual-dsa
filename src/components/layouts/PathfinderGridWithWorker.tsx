@@ -5,6 +5,10 @@ import { dijkstra } from '../../algorithms/dijkstra';
 import { backtrack } from '../../utils/gridHelperFunctions';
 import MemoizedGridNode from '../nodes/GridNode';
 import { Grid, GridLocation, GridNode } from '../interfaces/grid.interfaces';
+import instantAlgorithmWorker from '../../workers/instantAlgorithmWorker';
+// import { createWebWorker } from '../../workers/createWebWorker';
+import WebWorker from '../../workers/WebWorkerClass';
+import { createWebWorker } from '../../workers/createWebWorker';
 
 const rowCount = 30;
 const columnCount = 50;
@@ -45,6 +49,11 @@ const PathfinderGrid = () => {
 
 	const grid = useRef(initializeGrid(rowCount, columnCount));
 
+	const worker = createWebWorker(instantAlgorithmWorker);
+	useEffect(() => {
+		return () => worker.terminate();
+	});
+
 	const resetGridStyles = () => {
 		for (let i = 0; i < rowCount; i++) {
 			for (let j = 0; j < columnCount; j++) {
@@ -74,42 +83,25 @@ const PathfinderGrid = () => {
 		startPos?: GridLocation,
 		endPos?: GridLocation
 	) => {
-		if (isVisualizationFinished.current === false) return;
+		// if (isVisualizationFinished.current === false) return;
 
 		resetGridStyles();
 		grid.current = initializeGrid(rowCount, columnCount);
 		applyBatchObstacles();
 
-		// inProgress.current = true;
 		const currentStartNode = startPos ? startPos : startNode; // Store the current start node
 		const currentEndNode = endPos ? endPos : endNode; // Store the current end node
 
-		const visitedNodes: GridNode[] = algorithm(
-			grid.current,
-			currentStartNode, // Use the stored start node
-			currentEndNode // Use the stored end node
-		);
+		worker.postMessage({
+			grid: grid.current,
+			startNode: currentStartNode,
+			endNode: currentEndNode,
+			algorithm: 'bfs',
+		});
 
-		const shortestPath: GridNode[] = backtrack(
-			visitedNodes[visitedNodes.length - 1],
-			currentEndNode // Use the stored end node
-		);
-
-		for (let i = 0; i < visitedNodes.length; i++) {
-			const node = visitedNodes[i];
-			document
-				.getElementById(`node-${node.row}-${node.column}`)
-				?.classList.add('node-visited-unanimated');
-		}
-
-		for (let j = 0; j < shortestPath.length; j++) {
-			const node = shortestPath[j];
-			document
-				.getElementById(`node-${node.row}-${node.column}`)
-				?.classList.add('node-shortest-path');
-		}
-
-		// inProgress.current = false;
+		worker.addEventListener('message', (event) => {
+			console.log(event);
+		});
 	};
 
 	const visualizeAlgorithm = (
@@ -230,29 +222,13 @@ const PathfinderGrid = () => {
 
 	const handleSetStartNode = (row: number, column: number) => {
 		if (!inProgress.current) {
-			// Remove 'node-visited' class from previous start node
-			// const prevStartNode = grid.current[startNode.row][startNode.column];
-			// if (prevStartNode) {
-			// 	document
-			// 		.getElementById(`node-${prevStartNode.row}-${prevStartNode.column}`)
-			// 		?.classList.remove('node-visited');
-			// }
 			setStartNode({ row, column });
 		}
 	};
 
 	const handleSetEndNode = (row: number, column: number) => {
 		if (!inProgress.current) {
-			// Remove 'node-visited' class from previous end node
-			// const prevEndNode = grid.current[endNode.row][endNode.column];
-			// if (prevEndNode) {
-			// 	document
-			// 		.getElementById(`node-${prevEndNode.row}-${prevEndNode.column}`)
-			// 		?.classList.remove('node-visited');
-			// }
-
 			setEndNode({ row, column });
-			// console.log(obstacles.current.length);
 		}
 	};
 
@@ -305,6 +281,11 @@ const PathfinderGrid = () => {
 				</Button>
 				<Button onClick={() => console.log(startNode, endNode)}>
 					Display Start and End
+				</Button>
+				<Button
+					onClick={() => instantVisualizeAlgorithm(bfs, startNode, endNode)}
+				>
+					Instantly visualize Algorithm
 				</Button>
 			</HStack>
 			{grid.current.map((row, index) => (

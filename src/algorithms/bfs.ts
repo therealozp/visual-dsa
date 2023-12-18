@@ -24,7 +24,7 @@ const bfs = (grid: Grid, start: GridLocation, end: GridLocation) => {
 		const neighbors = getUnvisitedNeighbors(grid, curr);
 		for (const node of neighbors) {
 			if (node.visited) continue;
-			if (node.obstacle) continue;
+			// if (node.obstacle) continue;
 			node.visited = true;
 			node.prev = curr;
 			queue.push(node);

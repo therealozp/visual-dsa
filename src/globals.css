@@ -4,7 +4,7 @@ html {
 	min-height: 100%;
 }
 
-.node-unvisited {
+.node {
 	background-color: #7a7abd;
 }
 
@@ -18,6 +18,10 @@ html {
 	animation-iteration-count: 1;
 	animation-fill-mode: forwards;
 	animation-play-state: running;
+}
+
+.node-visited-unanimated {
+	background-color: #5994d4;
 }
 
 .node-shortest-path {
