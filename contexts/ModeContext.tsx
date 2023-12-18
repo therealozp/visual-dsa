@@ -1,9 +1,4 @@
-import React, {
-	createContext,
-	useState,
-	Dispatch,
-	SetStateAction,
-} from 'react';
+import { createContext, useState, Dispatch, SetStateAction } from 'react';
 
 const ModeContext = createContext<{
 	mode: string;

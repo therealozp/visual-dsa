@@ -6,7 +6,7 @@ interface WrapperProps {
 
 const Wrapper = ({ children }: WrapperProps) => {
 	return (
-		<Box minH={'100%'} width={'100%'} background="#181825">
+		<Box h="100vh" maxH={'100vh'} width={'100%'} background="#181825">
 			<Flex
 				width="100%"
 				height="64px"
@@ -25,7 +25,7 @@ const Wrapper = ({ children }: WrapperProps) => {
 					the last dsa visualizer you will ever need
 				</Text>
 			</Flex>
-			{children}
+			<Box height="calc(100vh - 64px)">{children}</Box>
 		</Box>
 	);
 };

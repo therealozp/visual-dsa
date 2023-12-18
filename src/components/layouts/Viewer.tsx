@@ -98,6 +98,7 @@ const Viewer = () => {
 						dagLevelDistance={20}
 						// dagMode="null"
 						nodeCanvasObject={(node, ctx, globalScale) => {
+							if (node.x === undefined || node.y === undefined) return;
 							const label = node.name;
 							const baseFontSize = 16; // Base font size
 							const fontSize =
@@ -123,6 +124,7 @@ const Viewer = () => {
 							node.__dimensions = { r: radius };
 						}}
 						nodePointerAreaPaint={(node, color, ctx) => {
+							if (node.x === undefined || node.y === undefined) return;
 							ctx.fillStyle = color;
 							const dims = node.__dimensions;
 							dims && ctx.beginPath();
@@ -140,7 +142,9 @@ const Viewer = () => {
 					<VStack m={4} spacing={4}>
 						{mode == 'bst' ? (
 							<BinaryTreePanel
+								// @ts-expect-error: multiple use cases for graphData, because one is defined as a simple node but other is defined with children + index
 								graphData={graphData}
+								// @ts-expect-error: same issue as above
 								setGraphData={setGraphData}
 							/>
 						) : (
