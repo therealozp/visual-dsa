@@ -18,27 +18,20 @@ interface GridNodeProps {
 const GridNode = ({
 	sideLength,
 	className,
-	visited,
 	id,
 	onMouseEnter,
 	onMouseDown,
 	onMouseUp,
 }: GridNodeProps) => {
-	const [extraClassName, setExtraClassName] = useState('');
-
-	// useEffect(() => {
-	// 	setExtraClassName(visited ? 'node-visited' : 'node-unvisited');
-	// }, [visited]);
-
 	return (
 		<Box
 			id={id}
-			className={`${extraClassName} ${className}`}
+			className={`${className}`}
 			height={`${sideLength}px`}
 			width={`${sideLength}px`}
 			margin="1px"
 			borderRadius="sm"
-			border={'1px solid transparent'}
+			// border={'1px solid black'}
 			// transition={'all 0.2s ease-in-out'}
 			onMouseEnter={onMouseEnter}
 			onMouseDown={onMouseDown}

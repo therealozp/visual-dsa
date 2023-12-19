@@ -35,9 +35,10 @@ const backtrack = (lastNode: GridNode, endLocation: GridLocation) => {
 	const path: GridNode[] = [];
 	let curr = lastNode;
 	while (curr.prev) {
-		path.unshift(curr);
+		path.push(curr);
 		curr = curr.prev;
 	}
+	path.reverse();
 	return path;
 };
 

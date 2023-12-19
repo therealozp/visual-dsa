@@ -1,40 +1,34 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, Button, Flex, HStack } from '@chakra-ui/react';
-import { bfs } from '../../algorithms/bfs';
+import { bfs, instantBfs } from '../../algorithms/bfs';
 import { dijkstra } from '../../algorithms/dijkstra';
 import { backtrack } from '../../utils/gridHelperFunctions';
 import MemoizedGridNode from '../nodes/GridNode';
 import { Grid, GridLocation, GridNode } from '../interfaces/grid.interfaces';
-import instantAlgorithmWorker from '../../workers/instantAlgorithmWorker';
-// import { createWebWorker } from '../../workers/createWebWorker';
-import WebWorker from '../../workers/WebWorkerClass';
-import { createWebWorker } from '../../workers/createWebWorker';
 
 const rowCount = 30;
 const columnCount = 50;
 
-const initializeGrid = (
-	numRows: number,
-	numCols: number
-	// startNode: GridLocation,
-	// endNode: GridLocation
-) => {
-	const rows = [];
-	for (let i = 0; i < numRows; i++) {
-		const squaresPerRow = [];
-		for (let j = 0; j < numCols; j++) {
-			squaresPerRow.push({
-				row: i,
-				column: j,
+const initializeGrid = (rowCount: number, columnCount: number) => {
+	const grid: Grid = [];
+	for (let row = 0; row < rowCount; row++) {
+		const currentRow: GridNode[] = [];
+		for (let column = 0; column < columnCount; column++) {
+			const nodeElement = document.querySelector(`#node-${row}-${column}`);
+			const node: GridNode = {
+				row,
+				column,
+				distance: Infinity,
 				visited: false,
 				obstacle: false,
-				distance: Infinity,
 				prev: null,
-			});
+				nodeElement, // Store the node element
+			};
+			currentRow.push(node);
 		}
-		rows.push(squaresPerRow);
+		grid.push(currentRow);
 	}
-	return rows;
+	return grid;
 };
 
 const PathfinderGrid = () => {
@@ -49,22 +43,17 @@ const PathfinderGrid = () => {
 
 	const grid = useRef(initializeGrid(rowCount, columnCount));
 
-	const worker = createWebWorker(instantAlgorithmWorker);
-	useEffect(() => {
-		return () => worker.terminate();
-	});
-
 	const resetGridStyles = () => {
 		for (let i = 0; i < rowCount; i++) {
 			for (let j = 0; j < columnCount; j++) {
 				const node = grid.current[i][j];
-				const nodeElement = document.getElementById(
-					`node-${node.row}-${node.column}`
-				);
+				const nodeElement = node.nodeElement;
 				if (nodeElement) {
-					nodeElement.classList.remove('node-visited');
-					nodeElement.classList.remove('node-visited-unanimated');
-					nodeElement.classList.remove('node-shortest-path');
+					nodeElement.classList.remove(
+						'node-visited',
+						'node-shortest-path',
+						'node-visited-unanimated'
+					);
 				}
 			}
 		}
@@ -83,25 +72,35 @@ const PathfinderGrid = () => {
 		startPos?: GridLocation,
 		endPos?: GridLocation
 	) => {
-		// if (isVisualizationFinished.current === false) return;
+		if (isVisualizationFinished.current === false) return;
 
 		resetGridStyles();
 		grid.current = initializeGrid(rowCount, columnCount);
 		applyBatchObstacles();
 
+		// inProgress.current = true;
 		const currentStartNode = startPos ? startPos : startNode; // Store the current start node
 		const currentEndNode = endPos ? endPos : endNode; // Store the current end node
 
-		worker.postMessage({
-			grid: grid.current,
-			startNode: currentStartNode,
-			endNode: currentEndNode,
-			algorithm: 'bfs',
-		});
+		const visitedNodes = algorithm(
+			grid.current,
+			currentStartNode,
+			currentEndNode
+		);
+		const shortestPath = backtrack(
+			visitedNodes[visitedNodes.length - 1],
+			currentEndNode
+		);
 
-		worker.addEventListener('message', (event) => {
-			console.log(event);
-		});
+		for (let i = 0; i < visitedNodes.length; i++) {
+			const node = visitedNodes[i];
+			node.nodeElement?.classList.add('node-visited-unanimated');
+		}
+
+		for (let j = 0; j < shortestPath.length; j++) {
+			const node = shortestPath[j];
+			node.nodeElement?.classList.add('node-shortest-path');
+		}
 	};
 
 	const visualizeAlgorithm = (
@@ -192,10 +191,10 @@ const PathfinderGrid = () => {
 			isMouseDown.current = true;
 			if (row === startNode.row && column === startNode.column) {
 				draggingStart.current = true;
-				document.addEventListener('mousemove', handleStartNodeDrag);
+				// document.addEventListener('mousemove', handleStartNodeDrag);
 			} else if (row === endNode.row && column === endNode.column) {
 				draggingEnd.current = true;
-				document.addEventListener('mousemove', handleEndNodeDrag);
+				// document.addEventListener('mousemove', handleEndNodeDrag);
 			}
 		}
 	};
@@ -205,11 +204,11 @@ const PathfinderGrid = () => {
 		if (draggingStart.current) {
 			draggingStart.current = false;
 			// console.log('removing event listener');
-			document.removeEventListener('mousemove', handleStartNodeDrag);
+			// document.removeEventListener('mousemove', handleStartNodeDrag);
 		}
 		if (draggingEnd.current) {
 			draggingEnd.current = false;
-			document.removeEventListener('mousemove', handleEndNodeDrag);
+			// document.removeEventListener('mousemove', handleEndNodeDrag);
 		}
 		console.log('mouse released');
 	};
@@ -217,6 +216,10 @@ const PathfinderGrid = () => {
 	const handleOnMouseEnter = (row: number, column: number) => {
 		if (isMouseDown.current && !draggingStart.current && !draggingEnd.current) {
 			handleCreateWall(row, column);
+		} else if (isMouseDown.current && draggingStart.current) {
+			handleStartNodeDrag(row, column);
+		} else if (isMouseDown.current && draggingEnd.current) {
+			handleEndNodeDrag(row, column);
 		}
 	};
 
@@ -232,38 +235,21 @@ const PathfinderGrid = () => {
 		}
 	};
 
-	const handleStartNodeDrag = (event: MouseEvent) => {
-		event.preventDefault();
+	const handleStartNodeDrag = (row: number, column: number) => {
 		if (draggingStart.current == false) return;
-		const node = document.elementFromPoint(event.clientX, event.clientY);
-		if (node) {
-			const id = node.id;
-			const match = id.match(/node-(\d+)-(\d+)/);
-			if (match) {
-				const row = parseInt(match[1]);
-				const column = parseInt(match[2]);
-				if (isVisualizationFinished.current) {
-					// console.log('instant vis called');
-					instantVisualizeAlgorithm(bfs, { row, column });
-				} else {
-					handleSetStartNode(row, column);
-				}
-			}
+		if (isVisualizationFinished.current) {
+			instantVisualizeAlgorithm(bfs, { row, column });
+		} else {
+			handleSetStartNode(row, column);
 		}
 	};
 
-	const handleEndNodeDrag = (event: MouseEvent) => {
-		event.preventDefault();
+	const handleEndNodeDrag = (row: number, column: number) => {
 		if (draggingEnd.current == false) return;
-		const node = document.elementFromPoint(event.clientX, event.clientY);
-		if (node) {
-			const id = node.id;
-			const match = id.match(/node-(\d+)-(\d+)/);
-			if (match) {
-				const row = parseInt(match[1]);
-				const column = parseInt(match[2]);
-				handleSetEndNode(row, column);
-			}
+		if (isVisualizationFinished.current) {
+			instantVisualizeAlgorithm(bfs, undefined, { row, column });
+		} else {
+			handleSetEndNode(row, column);
 		}
 	};
 
@@ -282,11 +268,6 @@ const PathfinderGrid = () => {
 				<Button onClick={() => console.log(startNode, endNode)}>
 					Display Start and End
 				</Button>
-				<Button
-					onClick={() => instantVisualizeAlgorithm(bfs, startNode, endNode)}
-				>
-					Instantly visualize Algorithm
-				</Button>
 			</HStack>
 			{grid.current.map((row, index) => (
 				<Flex key={`row-${index}`}>
@@ -297,16 +278,17 @@ const PathfinderGrid = () => {
 							row={square.row}
 							column={square.column}
 							sideLength={25}
-							className={`node ${square.obstacle ? 'node-obstacle' : ''} ${
-								square.row === startNode.row &&
-								square.column === startNode.column
-									? 'node-start'
-									: ''
-							} ${
-								square.row === endNode.row && square.column === endNode.column
-									? 'node-end'
-									: ''
-							} ${square.visited ? '' : 'node-unvisited'}`}
+							className={`${
+								square.obstacle
+									? 'node-obstacle'
+									: square.row === startNode.row && // eslint-disable-next-line no-mixed-spaces-and-tabs
+										  square.column === startNode.column
+										? 'node-start'
+										: square.row === endNode.row && // eslint-disable-next-line no-mixed-spaces-and-tabs
+											  square.column === endNode.column
+											? 'node-end'
+											: 'node'
+							}`}
 							visited={square.visited}
 							onMouseDown={() => handleMouseDown(square.row, square.column)}
 							onMouseEnter={() => handleOnMouseEnter(square.row, square.column)}

@@ -5,6 +5,7 @@ type GridNode = {
 	obstacle: boolean;
 	distance: number;
 	prev: GridNode | null;
+	nodeElement?: Element | null;
 };
 
 type Grid = GridNode[][];
