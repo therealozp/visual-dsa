@@ -1,5 +1,5 @@
 import { Box } from '@chakra-ui/react';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 interface GridNodeProps {
 	row: number;
@@ -10,9 +10,10 @@ interface GridNodeProps {
 	isEnd?: boolean;
 	visited?: boolean;
 	id: string;
-	onMouseEnter?: () => void;
-	onMouseDown?: () => void;
-	onMouseUp?: () => void;
+	onMouseEnter?: (e: React.MouseEvent) => void;
+	onMouseDown?: (e: React.MouseEvent) => void;
+	onMouseUp?: (e: React.MouseEvent) => void;
+	onMouseLeave?: (e: React.MouseEvent) => void;
 }
 
 const GridNode = ({
@@ -22,6 +23,7 @@ const GridNode = ({
 	onMouseEnter,
 	onMouseDown,
 	onMouseUp,
+	onMouseLeave,
 }: GridNodeProps) => {
 	return (
 		<Box
@@ -36,6 +38,7 @@ const GridNode = ({
 			onMouseEnter={onMouseEnter}
 			onMouseDown={onMouseDown}
 			onMouseUp={onMouseUp}
+			onMouseLeave={onMouseLeave}
 		/>
 	);
 };

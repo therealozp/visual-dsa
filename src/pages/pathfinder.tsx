@@ -7,7 +7,7 @@ const Pathfinder = () => {
 	return (
 		<Wrapper>
 			<Flex alignItems={'center'} justifyContent={'center'} h={'100%'}>
-				<PathfinderGridReplace />;
+				<PathfinderGridReplace />
 			</Flex>
 		</Wrapper>
 	);
