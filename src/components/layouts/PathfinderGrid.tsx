@@ -1,47 +1,93 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Box, Button, Flex, HStack } from '@chakra-ui/react';
 import { bfs } from '../../algorithms/bfs';
 import { dijkstra } from '../../algorithms/dijkstra';
+import { greedyBfs } from '../../algorithms/greedy_bfs';
+import { aStar } from '../../algorithms/a_star';
 import { backtrack } from '../../utils/gridHelperFunctions';
 import MemoizedGridNode from '../nodes/GridNode';
 import { Grid, GridLocation, GridNode } from '../interfaces/grid.interfaces';
+import AlgsPanel from '../panels/AlgorithmsPanel';
 
-const rowCount = 30;
-const columnCount = 50;
+// const rowCount = 30;
+// const columnCount = 50;
 
-const initializeGrid = (
-	numRows: number,
-	numCols: number
-	// startNode: GridLocation,
-	// endNode: GridLocation
-) => {
-	const rows = [];
-	for (let i = 0; i < numRows; i++) {
-		const squaresPerRow = [];
-		for (let j = 0; j < numCols; j++) {
-			squaresPerRow.push({
-				row: i,
-				column: j,
+const initializeGrid = (rowCount: number, columnCount: number) => {
+	const grid: Grid = [];
+	for (let row = 0; row < rowCount; row++) {
+		const currentRow: GridNode[] = [];
+		for (let column = 0; column < columnCount; column++) {
+			const nodeElement = document.querySelector(`#node-${row}-${column}`);
+			const node: GridNode = {
+				row,
+				column,
+				distance: Infinity,
 				visited: false,
 				obstacle: false,
-				distance: Infinity,
+				weight: 1,
 				prev: null,
-			});
+				nodeElement, // Store the node element
+			};
+			currentRow.push(node);
 		}
-		rows.push(squaresPerRow);
+		grid.push(currentRow);
 	}
-	return rows;
+	return grid;
 };
 
 const PathfinderGrid = () => {
 	const [startNode, setStartNode] = useState({ row: 7, column: 8 });
 	const [endNode, setEndNode] = useState({ row: 10, column: 19 });
+	const [algorithm, setAlgorithm] = useState('dijkstra');
+	const [disableButtons, setDisableButtons] = useState(false); // [TODO]
+
 	const inProgress = useRef(false);
 	const isVisualizationFinished = useRef(false);
 	const isMouseDown = useRef(false);
 	const draggingStart = useRef(false);
 	const draggingEnd = useRef(false);
 	const obstacles = useRef<GridLocation[]>([]);
+	const weightedNodes = useRef<GridLocation[]>([]);
+	const tempStartRef = useRef(startNode);
+	const tempEndRef = useRef(endNode);
+
+	const isWKeyPressed = useRef(false);
+
+	// Event listeners for 'W' key
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'w' || e.key === 'W') {
+				isWKeyPressed.current = true;
+			}
+		};
+
+		const handleKeyUp = (e: KeyboardEvent) => {
+			if (e.key === 'w' || e.key === 'W') {
+				isWKeyPressed.current = false;
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyDown);
+		window.addEventListener('keyup', handleKeyUp);
+
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown);
+			window.removeEventListener('keyup', handleKeyUp);
+		};
+	}, []);
+
+	const squareSize = 25; // Size of each grid square in pixels
+	const verticalExtras = 64 + 20;
+	const horizontalExtras = 100;
+	const algsPanelHeight = 100; // Replace with dynamic calculation if needed
+	const algsPanelWidth = 300 + 40;
+
+	const availableHeight = window.innerHeight - algsPanelHeight - verticalExtras;
+	const availableWidth =
+		window.innerWidth - algsPanelWidth - horizontalExtras * 2;
+
+	const rowCount = Math.floor(availableHeight / squareSize);
+	const columnCount = Math.floor(availableWidth / squareSize);
 
 	const grid = useRef(initializeGrid(rowCount, columnCount));
 
@@ -49,20 +95,16 @@ const PathfinderGrid = () => {
 		for (let i = 0; i < rowCount; i++) {
 			for (let j = 0; j < columnCount; j++) {
 				const node = grid.current[i][j];
-				const nodeElement = document.getElementById(
-					`node-${node.row}-${node.column}`
-				);
+				const nodeElement = node.nodeElement;
 				if (nodeElement) {
-					nodeElement.classList.remove('node-visited');
-					nodeElement.classList.remove('node-visited-unanimated');
-					nodeElement.classList.remove('node-shortest-path');
+					nodeElement.classList.remove(
+						'node-visited',
+						'node-shortest-path',
+						'node-visited-unanimated'
+					);
 				}
 			}
 		}
-	};
-
-	const resetGrid = () => {
-		window.location.reload();
 	};
 
 	const instantVisualizeAlgorithm = (
@@ -78,38 +120,32 @@ const PathfinderGrid = () => {
 
 		resetGridStyles();
 		grid.current = initializeGrid(rowCount, columnCount);
+		applyBatchWeightedNodes();
 		applyBatchObstacles();
 
 		// inProgress.current = true;
 		const currentStartNode = startPos ? startPos : startNode; // Store the current start node
 		const currentEndNode = endPos ? endPos : endNode; // Store the current end node
 
-		const visitedNodes: GridNode[] = algorithm(
+		const visitedNodes = algorithm(
 			grid.current,
-			currentStartNode, // Use the stored start node
-			currentEndNode // Use the stored end node
+			currentStartNode,
+			currentEndNode
 		);
-
-		const shortestPath: GridNode[] = backtrack(
+		const shortestPath = backtrack(
 			visitedNodes[visitedNodes.length - 1],
-			currentEndNode // Use the stored end node
+			currentEndNode
 		);
 
 		for (let i = 0; i < visitedNodes.length; i++) {
 			const node = visitedNodes[i];
-			document
-				.getElementById(`node-${node.row}-${node.column}`)
-				?.classList.add('node-visited-unanimated');
+			node.nodeElement?.classList.add('node-visited-unanimated');
 		}
 
 		for (let j = 0; j < shortestPath.length; j++) {
 			const node = shortestPath[j];
-			document
-				.getElementById(`node-${node.row}-${node.column}`)
-				?.classList.add('node-shortest-path');
+			node.nodeElement?.classList.add('node-shortest-path');
 		}
-
-		// inProgress.current = false;
 	};
 
 	const visualizeAlgorithm = (
@@ -119,11 +155,14 @@ const PathfinderGrid = () => {
 			endNode: GridLocation
 		) => GridNode[]
 	) => {
+		inProgress.current = true;
+		isVisualizationFinished.current = false;
+
+		resetGridStyles();
 		grid.current = initializeGrid(rowCount, columnCount);
+		applyBatchWeightedNodes();
 		applyBatchObstacles();
 
-		isVisualizationFinished.current = false;
-		inProgress.current = true;
 		const visitedNodes: GridNode[] = algorithm(
 			grid.current,
 			startNode,
@@ -160,18 +199,53 @@ const PathfinderGrid = () => {
 		setTimeout(() => {
 			inProgress.current = false;
 			isVisualizationFinished.current = true;
+			setDisableButtons(false);
 			console.log(isVisualizationFinished.current);
 		}, totalDuration);
 	};
 
-	const visualizeBFS = () => {
-		visualizeAlgorithm(bfs);
-		// console.log(isVisualizationFinished.current);
+	const handleVisualizeAlgorithm = () => {
+		setDisableButtons(true);
+		switch (algorithm) {
+			case 'dijkstra':
+				visualizeAlgorithm(dijkstra);
+				break;
+			case 'bfs':
+				visualizeAlgorithm(bfs);
+				break;
+			case 'gbfs':
+				visualizeAlgorithm(greedyBfs);
+				break;
+			case 'astar':
+				visualizeAlgorithm(aStar);
+				break;
+			default:
+				visualizeAlgorithm(dijkstra);
+				break;
+		}
 	};
 
-	const visualizeDijkstra = () => {
-		visualizeAlgorithm(dijkstra);
-		// console.log(isVisualizationFinished.current);
+	const handleInstantVisualizeAlgorithm = (
+		startPos?: GridLocation,
+		endPos?: GridLocation
+	) => {
+		switch (algorithm) {
+			case 'dijkstra':
+				instantVisualizeAlgorithm(dijkstra, startPos, endPos);
+				break;
+			case 'bfs':
+				instantVisualizeAlgorithm(bfs, startPos, endPos);
+				break;
+			case 'gbfs':
+				instantVisualizeAlgorithm(greedyBfs, startPos, endPos);
+				break;
+			case 'astar':
+				instantVisualizeAlgorithm(aStar, startPos, endPos);
+				break;
+			default:
+				instantVisualizeAlgorithm(dijkstra, startPos, endPos);
+				break;
+		}
 	};
 
 	const handleCreateWall = (row: number, column: number) => {
@@ -182,10 +256,17 @@ const PathfinderGrid = () => {
 			!(row == endNode.row && column == endNode.column) &&
 			!grid.current[row][column].obstacle
 		) {
-			obstacles.current.push({ row, column });
-			document
-				.getElementById(`node-${row}-${column}`)
-				?.classList.add('node-obstacle');
+			if (isWKeyPressed.current) {
+				weightedNodes.current.push({ row, column });
+				document
+					.getElementById(`node-${row}-${column}`)
+					?.classList.add('node-weighted');
+			} else {
+				obstacles.current.push({ row, column });
+				document
+					.getElementById(`node-${row}-${column}`)
+					?.classList.add('node-obstacle');
+			}
 		}
 	};
 
@@ -195,15 +276,19 @@ const PathfinderGrid = () => {
 		});
 	};
 
+	const applyBatchWeightedNodes = () => {
+		weightedNodes.current.forEach((weightedNode) => {
+			grid.current[weightedNode.row][weightedNode.column].weight = 10;
+		});
+	};
+
 	const handleMouseDown = (row: number, column: number) => {
 		if (!inProgress.current) {
 			isMouseDown.current = true;
 			if (row === startNode.row && column === startNode.column) {
 				draggingStart.current = true;
-				document.addEventListener('mousemove', handleStartNodeDrag);
 			} else if (row === endNode.row && column === endNode.column) {
 				draggingEnd.current = true;
-				document.addEventListener('mousemove', handleEndNodeDrag);
 			}
 		}
 	};
@@ -212,128 +297,142 @@ const PathfinderGrid = () => {
 		isMouseDown.current = false;
 		if (draggingStart.current) {
 			draggingStart.current = false;
-			// console.log('removing event listener');
-			document.removeEventListener('mousemove', handleStartNodeDrag);
+			setStartNode({
+				row: tempStartRef.current.row,
+				column: tempStartRef.current.column,
+			});
 		}
 		if (draggingEnd.current) {
 			draggingEnd.current = false;
-			document.removeEventListener('mousemove', handleEndNodeDrag);
+			setEndNode({
+				row: tempEndRef.current.row,
+				column: tempEndRef.current.column,
+			});
 		}
+		// sets the state if the value and the buffer differ
+
 		console.log('mouse released');
 	};
 
 	const handleOnMouseEnter = (row: number, column: number) => {
-		if (isMouseDown.current && !draggingStart.current && !draggingEnd.current) {
+		if (!isMouseDown.current) return;
+		if (!draggingStart.current && !draggingEnd.current) {
 			handleCreateWall(row, column);
+		} else if (draggingStart.current) {
+			// console.log('dragging start');
+			handleStartNodeDrag(row, column);
+		} else if (draggingEnd.current) {
+			handleEndNodeDrag(row, column);
 		}
 	};
 
-	const handleSetStartNode = (row: number, column: number) => {
-		if (!inProgress.current) {
-			// Remove 'node-visited' class from previous start node
-			// const prevStartNode = grid.current[startNode.row][startNode.column];
-			// if (prevStartNode) {
-			// 	document
-			// 		.getElementById(`node-${prevStartNode.row}-${prevStartNode.column}`)
-			// 		?.classList.remove('node-visited');
-			// }
+	const handleStartNodeDrag = (row: number, column: number) => {
+		if (draggingStart.current == false || inProgress.current) return;
+		if (isVisualizationFinished.current) {
+			// do not reset the end node
+			if (row === endNode.row && column === endNode.column) return;
+			tempStartRef.current = { row, column };
+			handleInstantVisualizeAlgorithm({ row, column });
+			grid.current[row][column].nodeElement?.classList.add('node-start');
+		} else {
 			setStartNode({ row, column });
+			tempStartRef.current = { row, column };
 		}
 	};
 
-	const handleSetEndNode = (row: number, column: number) => {
-		if (!inProgress.current) {
-			// Remove 'node-visited' class from previous end node
-			// const prevEndNode = grid.current[endNode.row][endNode.column];
-			// if (prevEndNode) {
-			// 	document
-			// 		.getElementById(`node-${prevEndNode.row}-${prevEndNode.column}`)
-			// 		?.classList.remove('node-visited');
-			// }
-
+	const handleEndNodeDrag = (row: number, column: number) => {
+		if (draggingEnd.current == false || inProgress.current) return;
+		if (isVisualizationFinished.current) {
+			// do not reset the start node
+			if (row === startNode.row && column === startNode.column) return;
+			tempEndRef.current = { row, column };
+			grid.current[row][column].nodeElement?.classList.add('node-end');
+			handleInstantVisualizeAlgorithm(undefined, { row, column });
+		} else {
 			setEndNode({ row, column });
-			// console.log(obstacles.current.length);
+			tempEndRef.current = { row, column };
+			// grid.current[row][column].nodeElement?.classList.add('node-end');
 		}
 	};
 
-	const handleStartNodeDrag = (event: MouseEvent) => {
-		event.preventDefault();
-		if (draggingStart.current == false) return;
-		const node = document.elementFromPoint(event.clientX, event.clientY);
-		if (node) {
-			const id = node.id;
-			const match = id.match(/node-(\d+)-(\d+)/);
-			if (match) {
-				const row = parseInt(match[1]);
-				const column = parseInt(match[2]);
-				if (isVisualizationFinished.current) {
-					// console.log('instant vis called');
-					instantVisualizeAlgorithm(bfs, { row, column });
-				} else {
-					handleSetStartNode(row, column);
-				}
-			}
-		}
-	};
-
-	const handleEndNodeDrag = (event: MouseEvent) => {
-		event.preventDefault();
-		if (draggingEnd.current == false) return;
-		const node = document.elementFromPoint(event.clientX, event.clientY);
-		if (node) {
-			const id = node.id;
-			const match = id.match(/node-(\d+)-(\d+)/);
-			if (match) {
-				const row = parseInt(match[1]);
-				const column = parseInt(match[2]);
-				handleSetEndNode(row, column);
-			}
-		}
+	const handleMouseLeaveNode = (row: number, column: number) => {
+		// this is meant to unset the styles of node-start/end when the mouse leaves the node
+		// since we are using tempStartNode and tempEndNode as a buffer to avoid re-render
+		// should only be called when draggingStart or draggingEnd is true
+		if (!draggingStart.current && !draggingEnd.current) return;
+		// console.log('attempting to remove class');
+		grid.current[row][column].nodeElement?.classList.remove('node-start');
+		grid.current[row][column].nodeElement?.classList.remove('node-end');
 	};
 
 	return (
-		<Box onMouseUp={handleMouseUp}>
-			<HStack>
-				<Button onClick={visualizeBFS} disabled={inProgress.current}>
-					Visualize BFS
-				</Button>
-				<Button onClick={visualizeDijkstra} disabled={inProgress.current}>
-					Visualize Dijkstra's
-				</Button>
-				<Button onClick={resetGrid} disabled={inProgress.current}>
-					Reset Grid
-				</Button>
-				<Button onClick={() => console.log(startNode, endNode)}>
-					Display Start and End
-				</Button>
-			</HStack>
-			{grid.current.map((row, index) => (
-				<Flex key={`row-${index}`}>
-					{row.map((square) => (
-						<MemoizedGridNode
-							id={`node-${square.row}-${square.column}`}
-							key={`node-${square.row}-${square.column}`}
-							row={square.row}
-							column={square.column}
-							sideLength={25}
-							className={`node ${square.obstacle ? 'node-obstacle' : ''} ${
-								square.row === startNode.row &&
-								square.column === startNode.column
-									? 'node-start'
-									: ''
-							} ${
-								square.row === endNode.row && square.column === endNode.column
-									? 'node-end'
-									: ''
-							} ${square.visited ? '' : 'node-unvisited'}`}
-							visited={square.visited}
-							onMouseDown={() => handleMouseDown(square.row, square.column)}
-							onMouseEnter={() => handleOnMouseEnter(square.row, square.column)}
-						/>
-					))}
-				</Flex>
-			))}
-		</Box>
+		<Flex onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+			<AlgsPanel mode={algorithm} setMode={setAlgorithm}>
+				<HStack spacing={4}>
+					<Button
+						width={'100px'}
+						colorScheme="cyan"
+						variant={'outline'}
+						onClick={handleVisualizeAlgorithm}
+						isDisabled={disableButtons}
+						disabled={inProgress.current}
+						mt={4}
+					>
+						Visualize
+					</Button>
+					<Button
+						colorScheme="red"
+						variant="outline"
+						width={'100px'}
+						mt={4}
+						onClick={() => window.location.reload()}
+					>
+						Reset Grid
+					</Button>
+				</HStack>
+			</AlgsPanel>
+			<Box>
+				{grid.current.map((row, index) => (
+					<Flex key={`row-${index}`}>
+						{row.map((square) => (
+							<MemoizedGridNode
+								id={`node-${square.row}-${square.column}`}
+								key={`node-${square.row}-${square.column}`}
+								row={square.row}
+								column={square.column}
+								sideLength={25}
+								className={`node ${
+									square.weight > 1
+										? 'node-weighted'
+										: square.obstacle
+											? 'node-obstacle'
+											: square.row === startNode.row && // eslint-disable-next-line no-mixed-spaces-and-tabs
+												  square.column === startNode.column
+												? 'node-start'
+												: square.row === endNode.row && // eslint-disable-next-line no-mixed-spaces-and-tabs
+													  square.column === endNode.column
+													? 'node-end'
+													: ''
+								}`}
+								visited={square.visited}
+								onMouseDown={(e: React.MouseEvent) => {
+									e.preventDefault();
+									handleMouseDown(square.row, square.column);
+								}}
+								onMouseEnter={(e: React.MouseEvent) => {
+									e.preventDefault();
+									handleOnMouseEnter(square.row, square.column);
+								}}
+								onMouseLeave={(e: React.MouseEvent) => {
+									e.preventDefault();
+									handleMouseLeaveNode(square.row, square.column);
+								}}
+							/>
+						))}
+					</Flex>
+				))}
+			</Box>
+		</Flex>
 	);
 };
 

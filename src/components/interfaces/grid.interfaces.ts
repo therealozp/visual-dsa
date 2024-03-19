@@ -4,6 +4,7 @@ type GridNode = {
 	visited: boolean;
 	obstacle: boolean;
 	distance: number;
+	weight: number;
 	prev: GridNode | null;
 	nodeElement?: Element | null;
 };

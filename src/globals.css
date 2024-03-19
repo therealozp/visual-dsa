@@ -10,14 +10,7 @@ html {
 
 .node-visited {
 	background-color: #5994d4;
-	animation-name: node-visited-animation;
-	animation-duration: 0.5s;
-	animation-timing-function: ease-out;
-	animation-delay: 0;
-	animation-direction: alternate;
-	animation-iteration-count: 1;
-	animation-fill-mode: forwards;
-	animation-play-state: running;
+	animation: ease-out 0.5s node-visited-animation alternate;
 }
 
 .node-visited-unanimated {
@@ -25,7 +18,16 @@ html {
 }
 
 .node-shortest-path {
-	background-color: #f0e130 !important;
+	background-color: #f0e130;
+}
+
+.node-weighted {
+	background-color: #5c717a !important;
+	animation: ease-out 0.5s node-obstacle-animation alternate;
+}
+
+.node-weighted.node-shortest-path {
+	background-color: #ebaf78 !important;
 }
 
 .node-start {
@@ -38,14 +40,7 @@ html {
 
 .node-obstacle {
 	background-color: #cdd6f4 !important;
-	animation-name: node-visited-animation;
-	animation-duration: 0.5s;
-	animation-timing-function: ease-out;
-	animation-delay: 0;
-	animation-direction: alternate;
-	animation-iteration-count: 1;
-	animation-fill-mode: forwards;
-	animation-play-state: running;
+	animation: ease-out 0.5s node-obstacle-animation alternate;
 }
 
 @keyframes node-visited-animation {
@@ -65,15 +60,12 @@ html {
 
 @keyframes node-obstacle-animation {
 	0% {
-		background-color: #cdd6f4;
 		transform: scale(0.3);
 	}
 	50% {
-		background-color: #cdd6f4;
 		transform: scale(1.1);
 	}
 	100% {
-		background-color: #cdd6f4;
 		transform: scale(1);
 	}
 }

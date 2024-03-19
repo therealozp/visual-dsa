@@ -28,6 +28,15 @@ const nodeCompare = (nodeA: GridNode, nodeB: GridNode) => {
 	return nodeA.distance - nodeB.distance;
 };
 
+const manhattanDistance = (
+	nodeA: GridNode | GridLocation,
+	nodeB: GridNode | GridLocation
+) => {
+	return (
+		Math.abs(nodeA.row - nodeB.row) + Math.abs(nodeA.column - nodeB.column)
+	);
+};
+
 const backtrack = (lastNode: GridNode, endLocation: GridLocation) => {
 	if (!lastNode) return [];
 	if (lastNode.row != endLocation.row || lastNode.column != endLocation.column)
@@ -42,4 +51,10 @@ const backtrack = (lastNode: GridNode, endLocation: GridLocation) => {
 	return path;
 };
 
-export { getUnvisitedNeighbors, getAllNodes, nodeCompare, backtrack };
+export {
+	getUnvisitedNeighbors,
+	getAllNodes,
+	nodeCompare,
+	backtrack,
+	manhattanDistance,
+};

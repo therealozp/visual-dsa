@@ -7,9 +7,11 @@ import {
 	getUnvisitedNeighbors,
 	getAllNodes,
 	nodeCompare,
+	manhattanDistance,
 } from '../utils/gridHelperFunctions';
 
-const dijkstra = (grid: Grid, start: GridLocation, end: GridLocation) => {
+// here the heuristic is assumed to be the manhattan distance
+const greedyBfs = (grid: Grid, start: GridLocation, end: GridLocation) => {
 	const visitedNodes: GridNode[] = [];
 	grid[start.row][start.column].distance = 0;
 	const nodesToVisit: GridNode[] = getAllNodes(grid);
@@ -17,22 +19,22 @@ const dijkstra = (grid: Grid, start: GridLocation, end: GridLocation) => {
 		nodesToVisit.sort(nodeCompare);
 		const closestNode = nodesToVisit.shift();
 		if (closestNode) {
-			// console.log(closestNode.obstacle);
 			if (closestNode.obstacle) continue;
-			if (closestNode?.distance === Infinity) return visitedNodes;
+			if (closestNode.distance === Infinity) return visitedNodes;
 			closestNode.visited = true;
 			visitedNodes.push(closestNode);
 			if (closestNode.row == end.row && closestNode.column == end.column)
 				return visitedNodes;
 			const unvisitedNeighbors = getUnvisitedNeighbors(grid, closestNode);
 			// updating the neighbors of the closest node
-			for (const node of unvisitedNeighbors) {
-				node.distance = closestNode.distance + node.weight;
-				node.prev = closestNode;
+			// using the heuristic function instead of the closest-node weight
+			for (const neighbor of unvisitedNeighbors) {
+				neighbor.distance = manhattanDistance(neighbor, end);
+				neighbor.prev = closestNode;
 			}
 		}
 	}
 	return visitedNodes;
 };
 
-export { dijkstra };
+export { greedyBfs };

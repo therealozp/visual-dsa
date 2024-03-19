@@ -11,8 +11,10 @@ import {
 	defaultDirectedGraphData,
 	defaultBinaryTreeData,
 	defaultWeightedGraphData,
+	defaultLinkedListData,
 } from '../../utils/dummyGraphData';
 import { useMode } from '../../../contexts/ModeContext.hook';
+import LinkedListPanel from '../panels/LinkedListPanel';
 
 const Viewer = () => {
 	const [graphData, setGraphData] = useState(defaultUndirectedGraphData);
@@ -50,7 +52,7 @@ const Viewer = () => {
 				setGraphData(defaultBinaryTreeData);
 				break;
 			case 'linked_list':
-				setGraphData(defaultBinaryTreeData);
+				setGraphData(defaultLinkedListData);
 				break;
 			case 'stack':
 				setGraphData(defaultBinaryTreeData);
@@ -92,7 +94,9 @@ const Viewer = () => {
 						backgroundColor="#181825"
 						linkColor={() => '#fff'}
 						nodeCanvasObjectMode={() => 'replace'}
-						linkDirectionalArrowLength={mode == 'dir_g' ? 3.5 : 0}
+						linkDirectionalArrowLength={
+							mode == 'dir_g' || mode == 'linked_list' ? 3.5 : 0
+						}
 						linkCurvature={mode == 'dir_g' ? 0.25 : 0}
 						dagMode={mode == 'bst' ? 'td' : undefined}
 						dagLevelDistance={20}
@@ -145,6 +149,11 @@ const Viewer = () => {
 								// @ts-expect-error: multiple use cases for graphData, because one is defined as a simple node but other is defined with children + index
 								graphData={graphData}
 								// @ts-expect-error: same issue as above
+								setGraphData={setGraphData}
+							/>
+						) : mode == 'linked_list' ? (
+							<LinkedListPanel
+								graphData={graphData}
 								setGraphData={setGraphData}
 							/>
 						) : (

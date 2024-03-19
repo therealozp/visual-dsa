@@ -72,7 +72,28 @@ const defaultBinaryTreeData = {
 	],
 };
 
+const defaultLinkedListData = {
+	nodes: [
+		{ id: '1', name: '1' },
+		{ id: '2', name: '2' },
+		{ id: '3', name: '3' },
+		{ id: '4', name: '4' },
+		{ id: '5', name: '5' },
+		{ id: '6', name: '6' },
+	],
+	links: [
+		{ source: '1', target: '2' },
+		{ source: '2', target: '3' },
+		{ source: '3', target: '4' },
+		{ source: '4', target: '5' },
+		{ source: '5', target: '6' },
+	],
+	currentHead: { id: '1', name: '1' },
+	currentTail: { id: '6', name: '6' },
+};
+
 export {
+	defaultLinkedListData,
 	defaultUndirectedGraphData,
 	defaultDirectedGraphData,
 	defaultWeightedGraphData,
