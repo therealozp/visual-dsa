@@ -34,6 +34,7 @@ const convertGraphDataToAdjacencyList = (
 
 	// Initialize the adjacency list with empty arrays for each node
 	graphData.nodes.forEach((node) => {
+		if (!node) return;
 		adjacencyList[node.id] = [];
 		// console.log(node.id);
 	});
@@ -43,11 +44,16 @@ const convertGraphDataToAdjacencyList = (
 	graphData.links.forEach((link) => {
 		// For undirected graphs, add both directions
 		// console.log(link);
+		if (!link) return;
 		if (
-			adjacencyList[link.source.id] &&
-			!adjacencyList[link.source.id].includes(link.target.id)
+			adjacencyList[(link.source as unknown as GraphNode).id] &&
+			!adjacencyList[(link.source as unknown as GraphNode).id].includes(
+				(link.target as unknown as GraphNode).id
+			)
 		) {
-			adjacencyList[link.source.id].push(link.target.id);
+			adjacencyList[(link.source as unknown as GraphNode).id].push(
+				(link.target as unknown as GraphNode).id
+			);
 		}
 		// For directed graphs, comment out one of the above blocks
 	});
@@ -56,7 +62,10 @@ const convertGraphDataToAdjacencyList = (
 };
 
 const convertBinaryTreeArrayToGraphData = (arr: BinaryTreeArray): GraphData => {
-	const conversion = (node: number | string | null, index: number) => {
+	const conversion = (
+		node: number | string | null,
+		index: number
+	): GraphNode | null => {
 		if (node == 'null' || node == null) return null;
 		return { id: node.toString(), name: node.toString(), index: index };
 	};
@@ -65,13 +74,14 @@ const convertBinaryTreeArrayToGraphData = (arr: BinaryTreeArray): GraphData => {
 
 	const nodes = arr
 		.map((node, index) => conversion(node, index))
-		.filter((node) => node != null);
+		.filter((node): node is GraphNode => node != null);
 	const links: GraphEdge[] = [];
 
 	// Create nodes from adjacency list keys
 	for (let i = 0; i < arr.length; i++) {
 		if (arr[i] == null && (arr[2 * i + 1] != null || arr[2 * i + 2] != null)) {
-			throw new Error('There is a null value with children in the array!');
+			console.error('There is a null value with children in the array!');
+			throw new Error('Invalid binary tree array');
 		}
 		if (2 * i + 1 < arr.length && arr[2 * i + 1] != null) {
 			links.push({ source: arr[i], target: arr[2 * i + 1] });
@@ -83,7 +93,6 @@ const convertBinaryTreeArrayToGraphData = (arr: BinaryTreeArray): GraphData => {
 
 	// console.log('nodes from binary parse: ', nodes);
 	// console.log('links: ', links);
-
 	return { nodes, links };
 };
 
@@ -95,6 +104,7 @@ const convertGraphDataToBinaryTreeArray = (
 	if (graphData.nodes.length === 0) return [];
 
 	graphData.nodes.forEach((node) => {
+		if (!node) return;
 		if (node.index !== undefined) {
 			nodeIndexMap.set(node.id, node.index);
 		}
@@ -105,6 +115,7 @@ const convertGraphDataToBinaryTreeArray = (
 	const binaryTreeArray = new Array(maxSize).fill(null);
 
 	graphData.links.forEach((link) => {
+		if (!link) return;
 		const parentIndex = nodeIndexMap.get(link.source);
 		const childIndex = nodeIndexMap.get(link.target);
 		if (
