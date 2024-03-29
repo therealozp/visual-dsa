@@ -14,7 +14,7 @@ const colors = {
 
 // Define the default styles for light and dark mode
 const styles = {
-	global: (props) => ({
+	global: (props: { colorMode: string }) => ({
 		body: {
 			bg:
 				props.colorMode === 'dark'

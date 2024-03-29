@@ -8,7 +8,11 @@ const ModeContext = createContext<{
 	setMode: () => {},
 });
 
-const ModeContextProvider = ({ children }) => {
+interface ModeContextProviderProps {
+	children: React.ReactNode;
+}
+
+const ModeContextProvider = ({ children }: ModeContextProviderProps) => {
 	const [mode, setMode] = useState('undir_g');
 	return (
 		<ModeContext.Provider value={{ mode, setMode }}>

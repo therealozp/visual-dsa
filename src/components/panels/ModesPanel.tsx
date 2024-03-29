@@ -1,4 +1,4 @@
-import { Flex, Select, Text, VStack } from '@chakra-ui/react';
+import { Flex, Select, Text } from '@chakra-ui/react';
 import { useMode } from '../../../contexts/ModeContext.hook';
 
 const ModesPanel = () => {

@@ -1,28 +1,23 @@
 import { useState } from 'react';
-import {
-	Flex,
-	Button,
-	Stack,
-	Text,
-	Input,
-	useToast,
-	Checkbox,
-} from '@chakra-ui/react';
+import { Flex, Button, Stack, Text, Input, Checkbox } from '@chakra-ui/react';
 import { GraphData } from '../interfaces/graph.interfaces';
 
 interface PanelProps {
 	graphData: GraphData;
-	setGraphData: React.Dispatch<React.SetStateAction<GraphData>>;
+	setGraphData?: React.Dispatch<React.SetStateAction<GraphData>>;
 }
 
-const LinkedListPanel = ({ graphData, setGraphData }: PanelProps) => {
+const LinkedListPanel = ({ graphData }: PanelProps) => {
 	const [source, setSource] = useState('');
 	const [target, setTarget] = useState('');
 	const [atTail, setAtTail] = useState(false);
+	// TODO: implement handleInsertHead and handleInsertTail
 	const handleInsertHead = () => {
 		console.log('hello');
 	};
-	const handleInsertTail = () => {};
+	const handleInsertTail = () => {
+		console.log('hello');
+	};
 	return (
 		<Flex
 			width="100%"
@@ -71,7 +66,7 @@ const LinkedListPanel = ({ graphData, setGraphData }: PanelProps) => {
 					colorScheme="teal"
 					variant={'outline'}
 					width="100px"
-					onClick={handleInsertHead}
+					onClick={atTail ? handleInsertTail : handleInsertHead}
 				>
 					add node
 				</Button>
