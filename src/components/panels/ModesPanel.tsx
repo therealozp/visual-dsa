@@ -10,11 +10,12 @@ const ModesPanel = () => {
 			bg="#1e1e2e"
 			color="#cdd6f4"
 			p={3}
-			border="2px solid rgb(205, 214, 244, 0.6)"
 			borderRadius={'8px'}
 			flexDir={'column'}
 		>
-			<Text mb={2}>select mode</Text>
+			<Text mb={2} fontSize={'lg'}>
+				select mode
+			</Text>
 			<Select onChange={(e) => setMode(e.target.value)} value={mode}>
 				<option value="undir_g">undirected graph</option>
 				<option value="dir_g">directed graph</option>

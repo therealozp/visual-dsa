@@ -96,7 +96,7 @@ const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 			borderRadius={'8px'}
 		>
 			<Stack>
-				<Text>add a node</Text>
+				<Text fontSize="lg">add a node</Text>
 				<Input
 					value={nodeValue}
 					onChange={(e) => setNodeValue(e.target.value)}
@@ -114,7 +114,6 @@ const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 					<Button
 						colorScheme="red"
 						variant={'outline'}
-						width="100px"
 						onClick={handleDeleteNode}
 					>
 						delete node
@@ -231,7 +230,7 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 		>
 			<Stack spacing={6}>
 				<Stack spacing={2}>
-					<Text>specify source node</Text>
+					<Text fontSize="lg">specify source node</Text>
 					<Input
 						type="string"
 						value={source}
@@ -240,7 +239,7 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 					/>
 				</Stack>
 				<Stack spacing={2}>
-					<Text>specify target node</Text>
+					<Text fontSize="lg">specify target node</Text>
 					<Input
 						type="string"
 						value={target}

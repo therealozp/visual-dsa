@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, SetStateAction } from 'react';
+import React, { useEffect, useState, useRef, SetStateAction } from 'react';
 import { Box, Button, HStack, Textarea, useToast } from '@chakra-ui/react';
 import {
 	convertAdjacencyListToGraphData,
@@ -13,9 +13,14 @@ import { useMode } from '../../../contexts/ModeContext.hook';
 interface GraphEditorProps {
 	graphData: GraphData;
 	setGraphData: React.Dispatch<React.SetStateAction<GraphData>>;
+	setDraggable: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AdjacencyListEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
+const AdjacencyListEditor = ({
+	graphData,
+	setGraphData,
+	setDraggable,
+}: GraphEditorProps) => {
 	const [adjacencyListText, setAdjacencyListText] = useState(
 		JSON.stringify(convertGraphDataToAdjacencyList(graphData), null, 2)
 	);
@@ -79,19 +84,15 @@ const AdjacencyListEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
 	});
 
 	return (
-		<Box
-			bg="#1e1e2e"
-			color="#cdd6f4"
-			border="2px solid rgb(205, 214, 244, 0.6)"
-			borderRadius={'8px'}
-			width={'100%'}
-		>
+		<Box bg="#1e1e2e" color="#cdd6f4" borderRadius={'8px'} width={'100%'}>
 			<Textarea
 				placeholder="Enter adjacency list here"
 				value={adjacencyListText}
 				onChange={handleTextChange}
 				minHeight="300px"
 				fontFamily={'Menlo, monospace'}
+				onFocus={() => setDraggable(false)}
+				onBlur={() => setDraggable(true)}
 			/>
 			<HStack m={3}>
 				<Button onClick={parseAdjacencyList}>Parse</Button>
@@ -100,7 +101,11 @@ const AdjacencyListEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
 	);
 };
 
-const BinaryTreeEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
+const BinaryTreeEditor = ({
+	graphData,
+	setGraphData,
+	setDraggable,
+}: GraphEditorProps) => {
 	const [binTreeText, setBinTreeText] = useState(
 		JSON.stringify(convertGraphDataToBinaryTreeArray(graphData))
 	);
@@ -172,19 +177,15 @@ const BinaryTreeEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
 	});
 
 	return (
-		<Box
-			bg="#1e1e2e"
-			color="#cdd6f4"
-			border="2px solid rgb(205, 214, 244, 0.6)"
-			borderRadius={'8px'}
-			width={'100%'}
-		>
+		<Box bg="#1e1e2e" color="#cdd6f4" borderRadius={'8px'} width={'100%'}>
 			<Textarea
 				placeholder="Enter adjacency list here"
 				value={binTreeText}
 				onChange={handleTextChange}
 				minHeight="300px"
 				fontFamily={'Menlo, monospace'}
+				onFocus={() => setDraggable(false)}
+				onBlur={() => setDraggable(true)}
 			/>
 			<HStack m={3}>
 				<Button onClick={parseBinaryArray}>Parse</Button>
@@ -193,17 +194,26 @@ const BinaryTreeEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
 	);
 };
 
-const GraphEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
+const GraphEditor = ({
+	graphData,
+	setGraphData,
+	setDraggable,
+}: GraphEditorProps) => {
 	const { mode } = useMode();
 
 	return (
 		<>
 			{mode == 'bst' ? (
-				<BinaryTreeEditor graphData={graphData} setGraphData={setGraphData} />
+				<BinaryTreeEditor
+					graphData={graphData}
+					setGraphData={setGraphData}
+					setDraggable={setDraggable}
+				/>
 			) : (
 				<AdjacencyListEditor
 					graphData={graphData}
 					setGraphData={setGraphData}
+					setDraggable={setDraggable}
 				/>
 			)}
 		</>
