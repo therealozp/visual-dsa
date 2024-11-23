@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useMode } from '../../../contexts/ModeContext.hook';
-import { GraphData } from '../interfaces/graph.interfaces';
+import { GraphData, GraphEdge } from '../interfaces/graph.interfaces';
 
 interface PanelProps {
 	graphData: GraphData;
@@ -19,31 +19,37 @@ interface PanelProps {
 const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 	const toast = useToast();
 	const [nodeValue, setNodeValue] = useState('');
+
+	const showToast = (
+		title: string,
+		description: string,
+		status: 'info' | 'error'
+	) => {
+		toast({
+			title,
+			description,
+			status,
+			duration: 3000,
+			isClosable: true,
+			position: 'top',
+		});
+	};
+
 	const handleAddNode = () => {
 		if (nodeValue === '') {
-			toast({
-				title: 'node value is empty',
-				description: 'node value cannot be empty',
-				status: 'info',
-				duration: 3000,
-				isClosable: true,
-				position: 'top',
-			});
+			showToast('node value is empty', 'node value cannot be empty', 'info');
 			return;
 		}
 		if (graphData.nodes.find((node) => node.id === nodeValue)) {
-			toast({
-				title: 'node already exists',
-				description: `node ${nodeValue} already exists`,
-				status: 'error',
-				duration: 3000,
-				isClosable: true,
-				position: 'top',
-			});
+			showToast(
+				'node already exists',
+				`node ${nodeValue} already exists`,
+				'error'
+			);
 			return;
 		}
 		setGraphData({
-			nodes: [...graphData.nodes, { id: nodeValue, name: nodeValue }],
+			nodes: [...graphData.nodes, { id: nodeValue }],
 			links: [...graphData.links],
 		});
 		setNodeValue('');
@@ -51,35 +57,22 @@ const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 
 	const handleDeleteNode = () => {
 		if (nodeValue === '') {
-			toast({
-				title: 'node value is empty',
-				description: 'node value cannot be empty',
-				status: 'info',
-				duration: 3000,
-				isClosable: true,
-				position: 'top',
-			});
+			showToast('node value is empty', 'node value cannot be empty', 'info');
 			return;
 		}
 		if (!graphData.nodes.find((node) => node.id === nodeValue)) {
-			toast({
-				title: 'node does not exist',
-				description: `node ${nodeValue} does not exist`,
-				status: 'error',
-				duration: 3000,
-				isClosable: true,
-				position: 'top',
-			});
+			showToast(
+				'node does not exist',
+				`node ${nodeValue} does not exist`,
+				'error'
+			);
 			return;
 		}
 		setGraphData({
-			nodes: [...graphData.nodes.filter((node) => node.id !== nodeValue)],
-			links: [
-				...graphData.links.filter(
-					// @ts-expect-error: source and target MIGHT not be defined on type {source: string, target: string}, but react-force-graph handles them differently
-					(link) => link.source.id !== nodeValue && link.target.id !== nodeValue
-				),
-			],
+			nodes: graphData.nodes.filter((node) => node.id !== nodeValue),
+			links: graphData.links.filter(
+				(link) => link.source !== nodeValue && link.target !== nodeValue
+			),
 		});
 		setNodeValue('');
 	};
@@ -133,6 +126,12 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 		setSource('');
 		setTarget('');
 	};
+	const checkEdgeExists = (link: GraphEdge) => {
+		return (
+			(link.source === source && link.target === target) ||
+			(link.source === target && link.target === source)
+		);
+	};
 	const handleAddEdge = () => {
 		if (source === '' || target === '') {
 			toast({
@@ -148,72 +147,30 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 		// link already exists
 		const sourceNodeExists = graphData.nodes.find((node) => node.id === source);
 		const targetNodeExists = graphData.nodes.find((node) => node.id === target);
-		console.log(target, source);
-		if (
-			graphData.links.some((link) => {
-				// @ts-expect-error: source and target MIGHT not be defined on type {source: string, target: string}, but react-force-graph handles them differently
-				const sourceId = link.source.id;
-				// @ts-expect-error: same as the above
-				const targetId = link.target.id;
 
-				return (
-					(sourceId === source && targetId === target) ||
-					(sourceId === target && targetId === source)
-				);
-			})
-		) {
-			if (
-				mode === 'dir_g' &&
-				!graphData.links.some((link) => {
-					// @ts-expect-error: source and target MIGHT not be defined on type {source: string, target: string}, but react-force-graph handles them differently
-					const sourceId = link.source.id;
-					// @ts-expect-error: same as the above
-					const targetId = link.target.id;
-
-					return sourceId === source && targetId === target;
-				})
-			) {
-				setGraphData({
-					nodes: [...graphData.nodes],
-					links: [...graphData.links, { source: source, target: target }],
-				});
-			} else {
-				toast({
-					title: 'edge already exists',
-					description: `edge from ${source} to ${target} already exists`,
-					status: 'error',
-					duration: 3000,
-					isClosable: true,
-					position: 'top',
-				});
-			}
-
+		if (graphData.links.some((link) => checkEdgeExists(link))) {
+			toast({
+				title: 'edge already exists',
+				status: 'error',
+				duration: 3000,
+				isClosable: true,
+				position: 'top',
+			});
 			return;
 		}
 
-		if (sourceNodeExists && targetNodeExists) {
+		if (mode === 'dir_g' || (sourceNodeExists && targetNodeExists)) {
 			setGraphData({
 				nodes: [...graphData.nodes],
 				links: [...graphData.links, { source: source, target: target }],
 			});
-		} else if (sourceNodeExists && !targetNodeExists) {
-			setGraphData({
-				nodes: [...graphData.nodes, { id: target, name: target }],
-				links: [...graphData.links, { source: source, target: target }],
-			});
-		} else if (!sourceNodeExists && targetNodeExists) {
-			setGraphData({
-				nodes: [...graphData.nodes, { id: source, name: source }],
-				links: [...graphData.links, { source: source, target: target }],
-			});
 		} else {
+			const newNodes = [...graphData.nodes];
+			if (!sourceNodeExists) newNodes.push({ id: source });
+			if (!targetNodeExists) newNodes.push({ id: target });
 			setGraphData({
-				nodes: [
-					...graphData.nodes,
-					{ id: source, name: source },
-					{ id: target, name: target },
-				],
-				links: [...graphData.links, { source: source, target: target }],
+				nodes: newNodes,
+				links: [...graphData.links, { source, target }],
 			});
 		}
 		reset();
@@ -260,4 +217,13 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 	);
 };
 
-export { NodesPanel, EdgesPanel };
+const GraphPanel = ({ graphData, setGraphData }: PanelProps) => {
+	return (
+		<>
+			<NodesPanel graphData={graphData} setGraphData={setGraphData} />
+			<EdgesPanel graphData={graphData} setGraphData={setGraphData} />
+		</>
+	);
+};
+
+export { NodesPanel, EdgesPanel, GraphPanel };

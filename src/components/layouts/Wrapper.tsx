@@ -6,7 +6,13 @@ interface WrapperProps {
 
 const Wrapper = ({ children }: WrapperProps) => {
 	return (
-		<Box h="100vh" maxH={'100vh'} width={'100vw'} background="#181825">
+		<Box
+			h="100vh"
+			maxH={'100vh'}
+			width={'100vw'}
+			overflowY={'hidden'}
+			background="#181825"
+		>
 			<Flex
 				width="100vw"
 				height="64px"
@@ -56,7 +62,7 @@ const Wrapper = ({ children }: WrapperProps) => {
 					</a>
 				</Text>
 			</Flex>
-			<Box height="calc(100vh - 64px)">{children}</Box>
+			<Box height="calc(100vh + 32px)">{children}</Box>
 		</Box>
 	);
 };

@@ -21,8 +21,6 @@ const ModesPanel = () => {
 				<option value="dir_g">directed graph</option>
 				<option value="bst">binary tree</option>
 				<option value="linked_list">linked list</option>
-				<option value="stack">stack</option>
-				<option value="queue">queue</option>
 				<option value="heap">heap</option>
 			</Select>
 		</Flex>

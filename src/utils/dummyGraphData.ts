@@ -1,11 +1,11 @@
 const defaultUndirectedGraphData = {
 	nodes: [
-		{ id: '1', name: '1' },
-		{ id: '2', name: '2' },
-		{ id: '3', name: '3' },
-		{ id: '4', name: '4' },
-		{ id: '5', name: '5' },
-		{ id: '6', name: '6' },
+		{ id: '1' },
+		{ id: '2' },
+		{ id: '3' },
+		{ id: '4' },
+		{ id: '5' },
+		{ id: '6' },
 	],
 	links: [
 		{ source: '1', target: '2' },
@@ -18,12 +18,12 @@ const defaultUndirectedGraphData = {
 
 const defaultDirectedGraphData = {
 	nodes: [
-		{ id: '1', name: '1' },
-		{ id: '2', name: '2' },
-		{ id: '3', name: '3' },
-		{ id: '4', name: '4' },
-		{ id: '5', name: '5' },
-		{ id: '6', name: '6' },
+		{ id: '1' },
+		{ id: '2' },
+		{ id: '3' },
+		{ id: '4' },
+		{ id: '5' },
+		{ id: '6' },
 	],
 	links: [
 		{ source: '1', target: '2' },
@@ -38,12 +38,12 @@ const defaultDirectedGraphData = {
 
 const defaultWeightedGraphData = {
 	nodes: [
-		{ id: '1', name: '1' },
-		{ id: '2', name: '2' },
-		{ id: '3', name: '3' },
-		{ id: '4', name: '4' },
-		{ id: '5', name: '5' },
-		{ id: '6', name: '6' },
+		{ id: '1' },
+		{ id: '2' },
+		{ id: '3' },
+		{ id: '4' },
+		{ id: '5' },
+		{ id: '6' },
 	],
 	links: [
 		{ source: '1', target: '2', weight: 1 },
@@ -56,12 +56,12 @@ const defaultWeightedGraphData = {
 
 const defaultBinaryTreeData = {
 	nodes: [
-		{ id: '1', name: '1', childrenCount: 2, index: 0 },
-		{ id: '2', name: '2', childrenCount: 2, index: 1 },
-		{ id: '3', name: '3', childrenCount: 1, index: 2 },
-		{ id: '4', name: '4', childrenCount: 0, index: 3 },
-		{ id: '5', name: '5', childrenCount: 0, index: 4 },
-		{ id: '6', name: '6', childrenCount: 0, index: 6 },
+		{ id: '1', childrenCount: 2, index: 0 },
+		{ id: '2', childrenCount: 2, index: 1 },
+		{ id: '3', childrenCount: 1, index: 2 },
+		{ id: '4', childrenCount: 0, index: 3 },
+		{ id: '5', childrenCount: 0, index: 4 },
+		{ id: '6', childrenCount: 0, index: 6 },
 	],
 	links: [
 		{ source: '1', target: '2' },
@@ -74,12 +74,12 @@ const defaultBinaryTreeData = {
 
 const defaultLinkedListData = {
 	nodes: [
-		{ id: '1', name: '1' },
-		{ id: '2', name: '2' },
-		{ id: '3', name: '3' },
-		{ id: '4', name: '4' },
-		{ id: '5', name: '5' },
-		{ id: '6', name: '6' },
+		{ id: '1' },
+		{ id: '2' },
+		{ id: '3' },
+		{ id: '4' },
+		{ id: '5' },
+		{ id: '6' },
 	],
 	links: [
 		{ source: '1', target: '2' },
@@ -88,8 +88,8 @@ const defaultLinkedListData = {
 		{ source: '4', target: '5' },
 		{ source: '5', target: '6' },
 	],
-	currentHead: { id: '1', name: '1' },
-	currentTail: { id: '6', name: '6' },
+	currentHead: { id: '1' },
+	currentTail: { id: '6' },
 };
 
 export {

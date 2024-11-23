@@ -1,7 +1,5 @@
 type GraphNode = {
 	id: string;
-	name: string;
-	index?: number; // Used for binary trees
 };
 
 type GraphEdge = {
@@ -10,18 +8,16 @@ type GraphEdge = {
 };
 
 type GraphData = {
-	nodes: GraphNode[];
+	nodes: GraphNode[] | BinaryTreeNode[];
 	links: GraphEdge[];
 };
 
-type BinaryTreeNode = {
-	id: string;
-	name: string;
+interface BinaryTreeNode extends GraphNode {
 	childrenCount: number;
 	index: number;
-};
+}
 
-type BinaryTreeGraphData = {
+type BinaryTreeData = {
 	nodes: BinaryTreeNode[];
 	links: GraphEdge[];
 };
@@ -39,5 +35,5 @@ export type {
 	GraphEdge,
 	BinaryTreeArray,
 	BinaryTreeNode,
-	BinaryTreeGraphData,
+	BinaryTreeData,
 };

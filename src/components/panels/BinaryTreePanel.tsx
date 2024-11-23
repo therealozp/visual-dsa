@@ -8,192 +8,155 @@ import {
 	Checkbox,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-// import { useMode } from '../../../contexts/ModeContext.hook';
-import { BinaryTreeGraphData } from '../interfaces/graph.interfaces';
+import { BinaryTreeData } from '../interfaces/graph.interfaces';
 
 interface PanelProps {
-	graphData: BinaryTreeGraphData;
-	setGraphData: React.Dispatch<React.SetStateAction<BinaryTreeGraphData>>;
+	graphData: BinaryTreeData;
+	setGraphData: React.Dispatch<React.SetStateAction<BinaryTreeData>>;
 }
 
 const BinaryTreePanel = ({ graphData, setGraphData }: PanelProps) => {
 	const [source, setSource] = useState('');
 	const [target, setTarget] = useState('');
 	const [isRightChild, setIsRightChild] = useState(false);
-	// const { mode } = useMode();
 	const toast = useToast();
+
 	const reset = () => {
 		setSource('');
 		setTarget('');
 	};
 
+	const showToast = (
+		title: string,
+		description: string,
+		status: 'info' | 'error'
+	) => {
+		toast({
+			title,
+			description,
+			status,
+			duration: 3000,
+			isClosable: true,
+			position: 'top',
+		});
+	};
+
 	const handleAddNode = () => {
-		if (graphData.nodes.length === 0) {
-			// insert node as a root
-			setGraphData({
-				nodes: [
-					...graphData.nodes,
-					{ id: source, name: source, index: 0, childrenCount: 0 },
-				],
-				links: [...graphData.links],
-			});
+		if (!source || (graphData.nodes.length > 0 && !target)) {
+			showToast(
+				'Invalid input',
+				'Parent or child node cannot be empty',
+				'info'
+			);
+			return;
+		}
+
+		const sourceNode = graphData.nodes.find((node) => node.id === source);
+		const targetNodeExists = graphData.nodes.some((node) => node.id === target);
+
+		if (!sourceNode && graphData.nodes.length > 0) {
+			showToast('Invalid parent node', 'Parent node does not exist', 'error');
 			reset();
+
 			return;
 		}
 
-		if (source === '' || target === '') {
-			toast({
-				title: 'parent or child node is empty',
-				description: 'parent or child node cannot be empty',
-				status: 'info',
-				duration: 3000,
-				isClosable: true,
-				position: 'top',
-			});
+		if (targetNodeExists) {
+			showToast('Node exists', 'Target node already exists', 'error');
+			reset();
+
 			return;
 		}
 
-		const sourceNodeExists = graphData.nodes.find((node) => node.id === source);
-		const targetNodeExists = graphData.nodes.find((node) => node.id === target);
-		console.log(target, source);
+		if (sourceNode && sourceNode.childrenCount >= 2) {
+			showToast(
+				'Node occupied',
+				'Parent node already has two children',
+				'error'
+			);
+			reset();
 
-		const parentNode = graphData.nodes.find((node) => node.id === source);
-		if (
-			sourceNodeExists &&
-			!targetNodeExists &&
-			parentNode &&
-			parentNode.childrenCount < 2
-		) {
-			const parentNodeIndex = graphData.nodes.indexOf(parentNode);
-			if (isRightChild) {
-				const occupied = graphData.nodes.find(
-					(node) => node.index === 2 * parentNode.index + 2
-				);
-				if (occupied) {
-					toast({
-						title: 'already has children',
-						description: 'this node is already occupied',
-						status: 'error',
-						duration: 3000,
-						isClosable: true,
-						position: 'top',
-					});
-					return;
-				}
-				const newnodes = [
-					...graphData.nodes,
-					{
-						id: target,
-						name: target,
-						index: 2 * parentNode.index + 2,
-						childrenCount: 0,
-					},
-				];
-				newnodes[parentNodeIndex].childrenCount += 1;
-				setGraphData({
-					nodes: newnodes,
-					links: [...graphData.links, { source: source, target: target }],
-				});
-			} else {
-				if (
-					graphData.nodes.find(
-						(node) => node.index === 2 * parentNode.index + 1
-					)
-				) {
-					toast({
-						title: 'already has children',
-						description: 'this node is already occupied',
-						status: 'error',
-						duration: 3000,
-						isClosable: true,
-						position: 'top',
-					});
-					return;
-				}
-				const newnodes = [
-					...graphData.nodes,
-					{
-						id: target,
-						name: target,
-						index: 2 * parentNode.index + 1,
-						childrenCount: 0,
-					},
-				];
-				newnodes[parentNodeIndex].childrenCount += 1;
-				setGraphData({
-					nodes: newnodes,
-					links: [...graphData.links, { source: source, target: target }],
-				});
-			}
-		} else {
-			toast({
-				title:
-					parentNode?.childrenCount == 2
-						? 'already has children'
-						: 'some error occured',
-				description:
-					parentNode?.childrenCount == 2
-						? 'this node is already populated'
-						: 'some condition violated',
-				status: 'error',
-				duration: 3000,
-				isClosable: true,
-				position: 'top',
-			});
+			return;
 		}
+
+		const newIndex = sourceNode
+			? isRightChild
+				? 2 * sourceNode.index + 2
+				: 2 * sourceNode.index + 1
+			: 0;
+		const occupied = graphData.nodes.some((node) => node.index === newIndex);
+
+		if (occupied) {
+			showToast('Node occupied', 'This position is already occupied', 'error');
+			reset();
+
+			return;
+		}
+
+		const newNodes = [
+			...graphData.nodes,
+			{ id: target, name: target, index: newIndex, childrenCount: 0 },
+		];
+
+		if (sourceNode) {
+			const parentNodeIndex = newNodes.indexOf(sourceNode);
+			newNodes[parentNodeIndex].childrenCount += 1;
+		}
+
+		setGraphData({
+			nodes: newNodes,
+			links: [...graphData.links, { source, target }],
+		});
 		reset();
 	};
+
 	return (
 		<Flex
 			width="100%"
-			// height="200px"
 			bg="#1e1e2e"
 			color="#cdd6f4"
 			p={3}
 			border="2px solid rgb(205, 214, 244, 0.6)"
-			borderRadius={'8px'}
+			borderRadius="8px"
 		>
 			<Stack spacing={6}>
 				<Stack spacing={2}>
 					<Text>
 						{graphData.nodes.length === 0
-							? 'specify root node'
-							: 'specify parent node'}
+							? 'Specify root node'
+							: 'Specify parent node'}
 					</Text>
 					<Input
-						type="string"
+						type="text"
 						value={source}
 						onChange={(e) => setSource(e.target.value)}
-						placeholder="source"
+						placeholder="Source"
 					/>
 				</Stack>
 				<Stack spacing={2}>
-					<Text>specify child node</Text>
+					<Text>Specify child node</Text>
 					<Input
-						type="string"
+						type="text"
 						value={target}
 						onChange={(e) => setTarget(e.target.value)}
-						placeholder="target"
+						placeholder="Target"
 						disabled={graphData.nodes.length === 0}
 					/>
 				</Stack>
 				<Checkbox
 					isDisabled={graphData.nodes.length === 0}
-					checked={isRightChild}
-					onChange={() => {
-						setIsRightChild(!isRightChild);
-						// console.log(isRightChild);
-					}}
+					isChecked={isRightChild}
+					onChange={() => setIsRightChild(!isRightChild)}
 				>
-					is right child?
+					Is right child?
 				</Checkbox>
 				<Button
 					colorScheme="teal"
-					variant={'outline'}
+					variant="outline"
 					width="100px"
 					onClick={handleAddNode}
 				>
-					add node
+					Add node
 				</Button>
 			</Stack>
 		</Flex>

@@ -4,13 +4,14 @@ import { Flex, Grid, VStack } from '@chakra-ui/react';
 import Wrapper from './Wrapper';
 
 import { ForceGraph2D } from 'react-force-graph';
-
 import { useMode } from '../../../contexts/ModeContext.hook';
 
-import { NodesPanel, EdgesPanel } from '../panels/NodesPanel';
+import { GraphPanel } from '../panels/NodesPanel';
 import { BinaryTreePanel } from '../panels/BinaryTreePanel';
+import LinkedListPanel from '../panels/LinkedListPanel';
 import ModesPanel from '../panels/ModesPanel';
 import GraphEditor from '../panels/GraphEditor';
+
 import {
 	defaultUndirectedGraphData,
 	defaultDirectedGraphData,
@@ -18,17 +19,12 @@ import {
 	defaultWeightedGraphData,
 	defaultLinkedListData,
 } from '../../utils/dummyGraphData';
-import LinkedListPanel from '../panels/LinkedListPanel';
-
-import Draggable from 'react-draggable';
-import { DragHandleIcon } from '@chakra-ui/icons';
 
 const Viewer = () => {
 	const [graphData, setGraphData] = useState(defaultUndirectedGraphData);
 
 	const [width, setWidth] = useState(0);
 	const [height, setHeight] = useState(0);
-	const [editorDraggable, setEditorDraggable] = useState(true);
 
 	const { mode } = useMode();
 
@@ -59,12 +55,6 @@ const Viewer = () => {
 				break;
 			case 'linked_list':
 				setGraphData(defaultLinkedListData);
-				break;
-			case 'stack':
-				setGraphData(defaultBinaryTreeData);
-				break;
-			case 'queue':
-				setGraphData(defaultBinaryTreeData);
 				break;
 			case 'heap':
 				setGraphData(defaultBinaryTreeData);
@@ -106,7 +96,7 @@ const Viewer = () => {
 						// dagMode="null"
 						nodeCanvasObject={(node, ctx, globalScale) => {
 							if (node.x === undefined || node.y === undefined) return;
-							const label = node.name;
+							const label = node.id;
 							const baseFontSize = 16; // Base font size
 							const fontSize =
 								baseFontSize * Math.log(globalScale) * textScaleMultiplier; // Increase font size as you zoom in
@@ -140,88 +130,70 @@ const Viewer = () => {
 						}}
 					/>
 				</Flex>
-				<Draggable>
-					<Flex
-						position={'absolute'}
-						left={8}
-						top={20}
-						flexDir="column"
-						justify="center"
-						alignItems="center"
-						border="2px solid rgb(205, 214, 244, 0.6)"
-						borderRadius="8px"
-						cursor={'grab'}
-					>
-						<DragHandleIcon color={'white'} fontSize={16} m={4} />
-						<ModesPanel />
-					</Flex>
-				</Draggable>
-				<Draggable>
-					<Flex
-						cursor={'grab'}
-						position="absolute"
-						right={4}
-						top={20}
-						flexDir="column"
-						justify="center"
-						alignItems="center"
-						border="2px solid rgb(205, 214, 244, 0.6)"
-						borderRadius="8px"
-					>
-						<DragHandleIcon color={'white'} fontSize={16} m={4} />
-						<VStack m={4} spacing={4}>
-							{mode == 'bst' ? (
-								<BinaryTreePanel
-									// @ts-expect-error: multiple use cases for graphData, because one is defined as a simple node but other is defined with children + index
-									graphData={graphData}
-									// @ts-expect-error: same issue as above
-									setGraphData={setGraphData}
-								/>
-							) : mode == 'linked_list' ? (
-								<LinkedListPanel
-									graphData={graphData}
-									setGraphData={setGraphData}
-								/>
-							) : (
-								<>
-									<NodesPanel
-										graphData={graphData}
-										setGraphData={setGraphData}
-									/>
-									<EdgesPanel
-										graphData={graphData}
-										setGraphData={setGraphData}
-									/>
-								</>
-							)}
-						</VStack>
-					</Flex>
-				</Draggable>
-				<Draggable disabled={!editorDraggable}>
-					<Flex
-						position="absolute"
-						right={4}
-						bottom={20}
-						flexDir="column"
-						justify="center"
-						alignItems="center"
-						border="2px solid rgb(205, 214, 244, 0.6)"
-						borderRadius="8px"
-						cursor={'grab'}
-						width={'400px'}
-					>
-						<DragHandleIcon
-							color={editorDraggable ? 'white' : 'red'}
-							fontSize={16}
-							m={4}
-						/>
-						<GraphEditor
-							graphData={graphData}
-							setGraphData={setGraphData}
-							setDraggable={setEditorDraggable}
-						/>
-					</Flex>
-				</Draggable>
+				<Flex
+					position={'absolute'}
+					left={8}
+					top={20}
+					flexDir="column"
+					justify="center"
+					alignItems="center"
+					border="2px solid rgb(205, 214, 244, 0.6)"
+					borderRadius="8px"
+					cursor={'grab'}
+				>
+					{/* <DragHandleIcon color={'white'} fontSize={16} m={4} /> */}
+					<ModesPanel />
+				</Flex>
+
+				<Flex
+					cursor={'grab'}
+					position="absolute"
+					right={4}
+					top={20}
+					flexDir="column"
+					justify="center"
+					alignItems="center"
+					border="2px solid rgb(205, 214, 244, 0.6)"
+					borderRadius="8px"
+				>
+					{/* <DragHandleIcon color={'white'} fontSize={16} m={4} /> */}
+					<VStack m={4} spacing={4}>
+						{mode == 'bst' ? (
+							<BinaryTreePanel
+								// @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
+								graphData={graphData}
+								// @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
+								setGraphData={setGraphData}
+							/>
+						) : mode == 'linked_list' ? (
+							<LinkedListPanel
+								graphData={graphData}
+								setGraphData={setGraphData}
+							/>
+						) : (
+							<GraphPanel graphData={graphData} setGraphData={setGraphData} />
+						)}
+					</VStack>
+				</Flex>
+				<Flex
+					position="absolute"
+					right={4}
+					bottom={20}
+					flexDir="column"
+					justify="center"
+					alignItems="center"
+					border="2px solid rgb(205, 214, 244, 0.6)"
+					borderRadius="8px"
+					cursor={'grab'}
+					width={'400px'}
+				>
+					{/* <DragHandleIcon
+						color={editorDraggable ? 'white' : 'red'}
+						fontSize={16}
+						m={4}
+					/> */}
+					<GraphEditor graphData={graphData} setGraphData={setGraphData} />
+				</Flex>
 			</Grid>
 		</Wrapper>
 	);
