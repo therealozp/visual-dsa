@@ -5,6 +5,56 @@ import {
 	GraphEdge,
 	BinaryTreeArray,
 } from '../components/interfaces/graph.interfaces';
+import * as dJSON from 'dirty-json';
+
+const parseLooseAdjacencyList = (input: string): AdjacencyList => {
+	const adjacencyList: AdjacencyList = {};
+
+	// Split input into lines and process each line
+	input
+		.split('\n') // Split by lines
+		.map((line) => line.trim()) // Trim whitespace from each line
+		.filter((line) => line && !line.startsWith('//')) // Ignore empty lines or comments
+		.forEach((line) => {
+			// Try to parse the line
+			try {
+				// Split line by ":", assume the first part is the key
+				const [keyPart, valuePart] = line.split(':', 2);
+
+				// Normalize the key
+				const key = String(keyPart).trim();
+
+				// Ensure key exists
+				if (!key) throw new Error('Missing key.');
+
+				// Normalize the values
+				let values: string[] = [];
+				if (valuePart) {
+					values = valuePart
+						.split(/[,\s]+/) // Split by commas or spaces
+						.map((value) => value.trim()) // Normalize each value
+						.filter((value) => value); // Remove empty values
+				}
+
+				// Add to adjacency list
+				adjacencyList[key] = values;
+			} catch (error: unknown) {
+				const errorMessage = (error as Error).message;
+				console.warn(`Skipping malformed line: "${line}"`, errorMessage);
+			}
+		});
+
+	return adjacencyList;
+};
+
+const convertAdjListWrapper = (input: string): GraphData => {
+	try {
+		return convertAdjacencyListToGraphData(JSON.parse(input));
+	} catch (error) {
+		const adjacencyList = parseLooseAdjacencyList(input);
+		return convertAdjacencyListToGraphData(adjacencyList);
+	}
+};
 
 const convertAdjacencyListToGraphData = (
 	adjacencyList: AdjacencyList
@@ -12,16 +62,30 @@ const convertAdjacencyListToGraphData = (
 	const nodes: GraphNode[] = [];
 	const links: GraphEdge[] = [];
 
-	// Create nodes from adjacency list keys
+	// Normalize and validate keys (node IDs) and create nodes
 	Object.keys(adjacencyList).forEach((key) => {
-		nodes.push({ id: key, name: key });
+		const normalizedKey = String(key).trim();
+		if (normalizedKey) {
+			nodes.push({ id: normalizedKey });
+		}
 	});
 
-	// Create links (edges) based on adjacency list
+	// Normalize and validate edges, then create links
 	Object.entries(adjacencyList).forEach(([sourceId, targets]) => {
-		targets.forEach((targetId) => {
-			links.push({ source: sourceId, target: targetId });
-		});
+		const normalizedSourceId = String(sourceId).trim();
+		if (!normalizedSourceId) return;
+
+		if (Array.isArray(targets)) {
+			targets.forEach((target) => {
+				const normalizedTargetId = String(target).trim();
+				if (normalizedTargetId) {
+					links.push({
+						source: normalizedSourceId,
+						target: normalizedTargetId,
+					});
+				}
+			});
+		}
 	});
 
 	return { nodes, links };
@@ -32,42 +96,43 @@ const convertGraphDataToAdjacencyList = (
 ): AdjacencyList => {
 	const adjacencyList: AdjacencyList = {};
 
-	// Initialize the adjacency list with empty arrays for each node
+	// Initialize adjacency list with nodes, normalizing IDs
 	graphData.nodes.forEach((node) => {
-		if (!node) return;
-		adjacencyList[node.id] = [];
-		// console.log(node.id);
-	});
-	console.log(graphData);
-	console.log(adjacencyList);
-	// Populate the adjacency list
-	graphData.links.forEach((link) => {
-		// For undirected graphs, add both directions
-		// console.log(link);
-		if (!link) return;
-		if (
-			adjacencyList[(link.source as unknown as GraphNode).id] &&
-			!adjacencyList[(link.source as unknown as GraphNode).id].includes(
-				(link.target as unknown as GraphNode).id
-			)
-		) {
-			adjacencyList[(link.source as unknown as GraphNode).id].push(
-				(link.target as unknown as GraphNode).id
-			);
+		if (!node || !node.id) return;
+		const normalizedNodeId = String(node.id).trim();
+		if (normalizedNodeId) {
+			adjacencyList[normalizedNodeId] = [];
 		}
-		// For directed graphs, comment out one of the above blocks
+	});
+
+	// Populate adjacency list with links, normalizing IDs
+	graphData.links.forEach((link) => {
+		if (!link || !link.source || !link.target) return;
+		const normalizedSourceId = String(link.source).trim();
+		const normalizedTargetId = String(link.target).trim();
+
+		if (
+			normalizedSourceId &&
+			normalizedTargetId &&
+			adjacencyList[normalizedSourceId] &&
+			!adjacencyList[normalizedSourceId].includes(normalizedTargetId)
+		) {
+			adjacencyList[normalizedSourceId].push(normalizedTargetId);
+		}
 	});
 
 	return adjacencyList;
 };
 
-const convertBinaryTreeArrayToGraphData = (arr: BinaryTreeArray): GraphData => {
+const convertBinaryTreeArrayToGraphData = (
+	arr: BinaryTreeArray
+): BinaryTreeArray => {
 	const conversion = (
 		node: number | string | null,
 		index: number
 	): GraphNode | null => {
 		if (node == 'null' || node == null) return null;
-		return { id: node.toString(), name: node.toString(), index: index };
+		return { id: node.toString(), index: index };
 	};
 
 	if (arr.length === 0) return { nodes: [], links: [] };
@@ -139,4 +204,5 @@ export {
 	convertGraphDataToAdjacencyList,
 	convertBinaryTreeArrayToGraphData,
 	convertGraphDataToBinaryTreeArray,
+	convertAdjListWrapper,
 };

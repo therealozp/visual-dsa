@@ -1,41 +1,30 @@
 import React, { useEffect, useState, useRef, SetStateAction } from 'react';
 import { Box, Button, HStack, Textarea, useToast } from '@chakra-ui/react';
 import {
-	convertAdjacencyListToGraphData,
 	convertGraphDataToAdjacencyList,
 	convertBinaryTreeArrayToGraphData,
 	convertGraphDataToBinaryTreeArray,
+	convertAdjListWrapper,
 } from '../../utils/parser';
 import { GraphData } from '../interfaces/graph.interfaces';
-import * as dJSON from 'dirty-json';
 import { useMode } from '../../../contexts/ModeContext.hook';
 
 interface GraphEditorProps {
 	graphData: GraphData;
 	setGraphData: React.Dispatch<React.SetStateAction<GraphData>>;
-	setDraggable: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AdjacencyListEditor = ({
-	graphData,
-	setGraphData,
-	setDraggable,
-}: GraphEditorProps) => {
+const AdjacencyListEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
 	const [adjacencyListText, setAdjacencyListText] = useState(
 		JSON.stringify(convertGraphDataToAdjacencyList(graphData), null, 2)
 	);
 	const toast = useToast();
-	const isInternalUpdate = useRef(false);
 
 	useEffect(() => {
 		// Only update the text if the change is external
-		if (!isInternalUpdate.current) {
-			setAdjacencyListText(
-				JSON.stringify(convertGraphDataToAdjacencyList(graphData), null, 2)
-			);
-		}
-		// Reset the ref for the next update
-		isInternalUpdate.current = false;
+		setAdjacencyListText(
+			JSON.stringify(convertGraphDataToAdjacencyList(graphData), null, 2)
+		);
 	}, [graphData]);
 
 	const handleTextChange = (e: {
@@ -46,11 +35,11 @@ const AdjacencyListEditor = ({
 
 	const parseAdjacencyList = () => {
 		try {
-			const adjacencyList = dJSON.parse(adjacencyListText);
-			const data = convertAdjacencyListToGraphData(adjacencyList);
-			setAdjacencyListText(JSON.stringify(adjacencyList, null, 2));
+			const data = convertAdjListWrapper(adjacencyListText);
+			setAdjacencyListText(
+				JSON.stringify(convertGraphDataToAdjacencyList(data), null, 2)
+			);
 			// Indicate that the next update is internal
-			isInternalUpdate.current = true;
 			setGraphData(data);
 			toast({
 				title: 'success',
@@ -91,8 +80,6 @@ const AdjacencyListEditor = ({
 				onChange={handleTextChange}
 				minHeight="300px"
 				fontFamily={'Menlo, monospace'}
-				onFocus={() => setDraggable(false)}
-				onBlur={() => setDraggable(true)}
 			/>
 			<HStack m={3}>
 				<Button onClick={parseAdjacencyList}>Parse</Button>
@@ -101,11 +88,7 @@ const AdjacencyListEditor = ({
 	);
 };
 
-const BinaryTreeEditor = ({
-	graphData,
-	setGraphData,
-	setDraggable,
-}: GraphEditorProps) => {
+const BinaryTreeEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
 	const [binTreeText, setBinTreeText] = useState(
 		JSON.stringify(convertGraphDataToBinaryTreeArray(graphData))
 	);
@@ -184,8 +167,6 @@ const BinaryTreeEditor = ({
 				onChange={handleTextChange}
 				minHeight="300px"
 				fontFamily={'Menlo, monospace'}
-				onFocus={() => setDraggable(false)}
-				onBlur={() => setDraggable(true)}
 			/>
 			<HStack m={3}>
 				<Button onClick={parseBinaryArray}>Parse</Button>
@@ -194,26 +175,17 @@ const BinaryTreeEditor = ({
 	);
 };
 
-const GraphEditor = ({
-	graphData,
-	setGraphData,
-	setDraggable,
-}: GraphEditorProps) => {
+const GraphEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
 	const { mode } = useMode();
 
 	return (
 		<>
 			{mode == 'bst' ? (
-				<BinaryTreeEditor
-					graphData={graphData}
-					setGraphData={setGraphData}
-					setDraggable={setDraggable}
-				/>
+				<BinaryTreeEditor graphData={graphData} setGraphData={setGraphData} />
 			) : (
 				<AdjacencyListEditor
 					graphData={graphData}
 					setGraphData={setGraphData}
-					setDraggable={setDraggable}
 				/>
 			)}
 		</>
