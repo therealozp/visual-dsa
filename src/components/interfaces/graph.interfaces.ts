@@ -1,5 +1,6 @@
 type GraphNode = {
 	id: string;
+	index?: number;
 };
 
 type GraphEdge = {

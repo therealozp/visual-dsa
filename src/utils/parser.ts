@@ -5,7 +5,6 @@ import {
 	GraphEdge,
 	BinaryTreeArray,
 } from '../components/interfaces/graph.interfaces';
-import * as dJSON from 'dirty-json';
 
 const parseLooseAdjacencyList = (input: string): AdjacencyList => {
 	const adjacencyList: AdjacencyList = {};
@@ -124,9 +123,7 @@ const convertGraphDataToAdjacencyList = (
 	return adjacencyList;
 };
 
-const convertBinaryTreeArrayToGraphData = (
-	arr: BinaryTreeArray
-): BinaryTreeArray => {
+const convertBinaryTreeArrayToGraphData = (arr: BinaryTreeArray): GraphData => {
 	const conversion = (
 		node: number | string | null,
 		index: number
