@@ -65,7 +65,7 @@ const convertAdjacencyListToGraphData = (
 	Object.keys(adjacencyList).forEach((key) => {
 		const normalizedKey = String(key).trim();
 		if (normalizedKey) {
-			nodes.push({ id: normalizedKey });
+			nodes.push({ id: normalizedKey, index: 0, childrenCount: 0 });
 		}
 	});
 
@@ -124,37 +124,57 @@ const convertGraphDataToAdjacencyList = (
 };
 
 const convertBinaryTreeArrayToGraphData = (arr: BinaryTreeArray): GraphData => {
-	const conversion = (
-		node: number | string | null,
-		index: number
-	): GraphNode | null => {
-		if (node == 'null' || node == null) return null;
-		return { id: node.toString(), index: index };
-	};
+	// helper: treat null/undefined/'null' as absent
+	const isValidValue = (
+		v: number | string | null | undefined
+	): v is number | string => v !== null && v !== undefined && v !== 'null';
 
 	if (arr.length === 0) return { nodes: [], links: [] };
 
-	const nodes = arr
-		.map((node, index) => conversion(node, index))
-		.filter((node): node is GraphNode => node != null);
+	const nodesMap = new Map<string, GraphNode>();
 	const links: GraphEdge[] = [];
 
-	// Create nodes from adjacency list keys
 	for (let i = 0; i < arr.length; i++) {
-		if (arr[i] == null && (arr[2 * i + 1] != null || arr[2 * i + 2] != null)) {
-			console.error('There is a null value with children in the array!');
-			throw new Error('Invalid binary tree array');
+		const val = arr[i];
+
+		// If the parent slot is invalid but any child is present, that's an invalid representation.
+		const leftIdx = 2 * i + 1;
+		const rightIdx = 2 * i + 2;
+		const leftPresent = leftIdx < arr.length && isValidValue(arr[leftIdx]);
+		const rightPresent = rightIdx < arr.length && isValidValue(arr[rightIdx]);
+
+		if (!isValidValue(val)) {
+			if (leftPresent || rightPresent) {
+				console.error(
+					`Invalid binary tree array: null parent at index ${i} has children.`
+				);
+				throw new Error(
+					'Invalid binary tree array: null parent with non-null children'
+				);
+			}
+			continue; // skip empty slot
 		}
-		if (2 * i + 1 < arr.length && arr[2 * i + 1] != null) {
-			links.push({ source: arr[i], target: arr[2 * i + 1] });
+
+		const id = String(val);
+		// create node with index and childrenCount (will increment below)
+		const node: GraphNode = { id, index: i, childrenCount: 0 };
+		nodesMap.set(id, node);
+
+		// add left child link if present
+		if (leftPresent) {
+			const leftId = String(arr[leftIdx]);
+			links.push({ source: id, target: leftId });
+			node.childrenCount = (node.childrenCount ?? 0) + 1;
 		}
-		if (2 * i + 2 < arr.length && arr[2 * i + 2] != null) {
-			links.push({ source: arr[i], target: arr[2 * i + 2] });
+		// add right child link if present
+		if (rightPresent) {
+			const rightId = String(arr[rightIdx]);
+			links.push({ source: id, target: rightId });
+			node.childrenCount = (node.childrenCount ?? 0) + 1;
 		}
 	}
 
-	// console.log('nodes from binary parse: ', nodes);
-	// console.log('links: ', links);
+	const nodes = Array.from(nodesMap.values());
 	return { nodes, links };
 };
 

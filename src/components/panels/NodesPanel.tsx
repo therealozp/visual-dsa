@@ -49,7 +49,10 @@ const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 			return;
 		}
 		setGraphData({
-			nodes: [...graphData.nodes, { id: nodeValue }],
+			nodes: [
+				...graphData.nodes,
+				{ id: nodeValue, index: 0, childrenCount: 0 },
+			],
 			links: [...graphData.links],
 		});
 		setNodeValue('');
@@ -166,8 +169,10 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 			});
 		} else {
 			const newNodes = [...graphData.nodes];
-			if (!sourceNodeExists) newNodes.push({ id: source });
-			if (!targetNodeExists) newNodes.push({ id: target });
+			if (!sourceNodeExists)
+				newNodes.push({ id: source, index: 0, childrenCount: 0 });
+			if (!targetNodeExists)
+				newNodes.push({ id: target, index: 0, childrenCount: 0 });
 			setGraphData({
 				nodes: newNodes,
 				links: [...graphData.links, { source, target }],

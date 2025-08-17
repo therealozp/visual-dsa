@@ -1,6 +1,9 @@
+// index and childrenCount are only required for certain algorithms (eg. binary tree)
+// make them optional so callers that don't need them don't have to initialize them.
 type GraphNode = {
 	id: string;
 	index?: number;
+	childrenCount?: number;
 };
 
 type GraphEdge = {
@@ -9,17 +12,7 @@ type GraphEdge = {
 };
 
 type GraphData = {
-	nodes: GraphNode[] | BinaryTreeNode[];
-	links: GraphEdge[];
-};
-
-interface BinaryTreeNode extends GraphNode {
-	childrenCount: number;
-	index: number;
-}
-
-type BinaryTreeData = {
-	nodes: BinaryTreeNode[];
+	nodes: GraphNode[];
 	links: GraphEdge[];
 };
 
@@ -29,12 +22,4 @@ type AdjacencyList = {
 
 type BinaryTreeArray = string[];
 
-export type {
-	GraphData,
-	AdjacencyList,
-	GraphNode,
-	GraphEdge,
-	BinaryTreeArray,
-	BinaryTreeNode,
-	BinaryTreeData,
-};
+export type { GraphData, AdjacencyList, GraphNode, GraphEdge, BinaryTreeArray };

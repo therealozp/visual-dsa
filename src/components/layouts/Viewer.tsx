@@ -19,9 +19,12 @@ import {
 	defaultWeightedGraphData,
 	defaultLinkedListData,
 } from '../../utils/dummyGraphData';
+import { GraphData } from '../interfaces/graph.interfaces';
 
 const Viewer = () => {
-	const [graphData, setGraphData] = useState(defaultUndirectedGraphData);
+	const [graphData, setGraphData] = useState<GraphData>(
+		defaultUndirectedGraphData
+	);
 
 	const [width, setWidth] = useState(0);
 	const [height, setHeight] = useState(0);
@@ -160,9 +163,7 @@ const Viewer = () => {
 					<VStack m={4} spacing={4}>
 						{mode == 'bst' ? (
 							<BinaryTreePanel
-								// @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
 								graphData={graphData}
-								// @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
 								setGraphData={setGraphData}
 							/>
 						) : mode == 'linked_list' ? (

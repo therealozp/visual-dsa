@@ -8,11 +8,11 @@ import {
 	Checkbox,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { BinaryTreeData } from '../interfaces/graph.interfaces';
+import { GraphData } from '../interfaces/graph.interfaces';
 
 interface PanelProps {
-	graphData: BinaryTreeData;
-	setGraphData: React.Dispatch<React.SetStateAction<BinaryTreeData>>;
+	graphData: GraphData;
+	setGraphData: React.Dispatch<React.SetStateAction<GraphData>>;
 }
 
 const BinaryTreePanel = ({ graphData, setGraphData }: PanelProps) => {
@@ -68,7 +68,7 @@ const BinaryTreePanel = ({ graphData, setGraphData }: PanelProps) => {
 			return;
 		}
 
-		if (sourceNode && sourceNode.childrenCount >= 2) {
+		if (sourceNode && (sourceNode.childrenCount ?? 0) >= 2) {
 			showToast(
 				'Node occupied',
 				'Parent node already has two children',
@@ -79,11 +79,13 @@ const BinaryTreePanel = ({ graphData, setGraphData }: PanelProps) => {
 			return;
 		}
 
-		const newIndex = sourceNode
-			? isRightChild
-				? 2 * sourceNode.index + 2
-				: 2 * sourceNode.index + 1
-			: 0;
+		const parentIndex = sourceNode ? (sourceNode.index ?? 0) : undefined;
+		const newIndex =
+			parentIndex !== undefined
+				? isRightChild
+					? 2 * parentIndex + 2
+					: 2 * parentIndex + 1
+				: 0;
 		const occupied = graphData.nodes.some((node) => node.index === newIndex);
 
 		if (occupied) {
@@ -100,7 +102,8 @@ const BinaryTreePanel = ({ graphData, setGraphData }: PanelProps) => {
 
 		if (sourceNode) {
 			const parentNodeIndex = newNodes.indexOf(sourceNode);
-			newNodes[parentNodeIndex].childrenCount += 1;
+			newNodes[parentNodeIndex].childrenCount =
+				(newNodes[parentNodeIndex].childrenCount ?? 0) + 1;
 		}
 
 		setGraphData({
