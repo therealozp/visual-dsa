@@ -6,6 +6,7 @@ import Pathfinder from './pages/pathfinder.tsx';
 import theme from './theme/theme.ts';
 import './globals.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import GraphContextProvider from '../contexts/GraphDataContext';
 
 const router = createBrowserRouter([
 	{ path: '/', element: <GraphsPage /> },
@@ -15,7 +16,9 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
 		<ChakraProvider theme={theme}>
-			<RouterProvider router={router} />
+			<GraphContextProvider>
+				<RouterProvider router={router} />
+			</GraphContextProvider>
 		</ChakraProvider>
 	</React.StrictMode>
 );

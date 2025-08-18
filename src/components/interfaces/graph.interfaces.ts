@@ -2,7 +2,11 @@
 // make them optional so callers that don't need them don't have to initialize them.
 type GraphNode = {
 	id: string;
-	index?: number;
+
+	// ForceGraph2D auto-assigns an index
+	// so we cannot use this
+	// re-assign it instead
+	binaryTreeNodeIndex?: number;
 	childrenCount?: number;
 };
 

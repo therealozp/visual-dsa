@@ -65,7 +65,7 @@ const convertAdjacencyListToGraphData = (
 	Object.keys(adjacencyList).forEach((key) => {
 		const normalizedKey = String(key).trim();
 		if (normalizedKey) {
-			nodes.push({ id: normalizedKey, index: 0, childrenCount: 0 });
+			nodes.push({ id: normalizedKey });
 		}
 	});
 
@@ -156,8 +156,8 @@ const convertBinaryTreeArrayToGraphData = (arr: BinaryTreeArray): GraphData => {
 		}
 
 		const id = String(val);
-		// create node with index and childrenCount (will increment below)
-		const node: GraphNode = { id, index: i, childrenCount: 0 };
+		// create node with binaryTreeNodeIndex and childrenCount (will increment below)
+		const node: GraphNode = { id, binaryTreeNodeIndex: i, childrenCount: 0 };
 		nodesMap.set(id, node);
 
 		// add left child link if present
@@ -187,8 +187,8 @@ const convertGraphDataToBinaryTreeArray = (
 
 	graphData.nodes.forEach((node) => {
 		if (!node) return;
-		if (node.index !== undefined) {
-			nodeIndexMap.set(node.id, node.index);
+		if (node.binaryTreeNodeIndex !== undefined) {
+			nodeIndexMap.set(node.id, node.binaryTreeNodeIndex);
 		}
 	});
 

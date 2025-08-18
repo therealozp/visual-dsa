@@ -8,14 +8,11 @@ import {
 	Checkbox,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { GraphData } from '../interfaces/graph.interfaces';
+// GraphData type available via context where needed
+import { useGraphDataContext } from '../../../contexts/GraphDataContext';
 
-interface PanelProps {
-	graphData: GraphData;
-	setGraphData: React.Dispatch<React.SetStateAction<GraphData>>;
-}
-
-const BinaryTreePanel = ({ graphData, setGraphData }: PanelProps) => {
+const BinaryTreePanel = () => {
+	const { graphData, setGraphData } = useGraphDataContext();
 	const [source, setSource] = useState('');
 	const [target, setTarget] = useState('');
 	const [isRightChild, setIsRightChild] = useState(false);
@@ -79,14 +76,18 @@ const BinaryTreePanel = ({ graphData, setGraphData }: PanelProps) => {
 			return;
 		}
 
-		const parentIndex = sourceNode ? (sourceNode.index ?? 0) : undefined;
+		const parentIndex = sourceNode
+			? (sourceNode.binaryTreeNodeIndex ?? 0)
+			: undefined;
 		const newIndex =
 			parentIndex !== undefined
 				? isRightChild
 					? 2 * parentIndex + 2
 					: 2 * parentIndex + 1
 				: 0;
-		const occupied = graphData.nodes.some((node) => node.index === newIndex);
+		const occupied = graphData.nodes.some(
+			(node) => node.binaryTreeNodeIndex === newIndex
+		);
 
 		if (occupied) {
 			showToast('Node occupied', 'This position is already occupied', 'error');
@@ -97,7 +98,12 @@ const BinaryTreePanel = ({ graphData, setGraphData }: PanelProps) => {
 
 		const newNodes = [
 			...graphData.nodes,
-			{ id: target, name: target, index: newIndex, childrenCount: 0 },
+			{
+				id: target,
+				name: target,
+				binaryTreeNodeIndex: newIndex,
+				childrenCount: 0,
+			},
 		];
 
 		if (sourceNode) {

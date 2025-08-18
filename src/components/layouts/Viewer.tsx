@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 
 import { Flex, Grid, VStack } from '@chakra-ui/react';
 import Wrapper from './Wrapper';
@@ -19,12 +19,13 @@ import {
 	defaultWeightedGraphData,
 	defaultLinkedListData,
 } from '../../utils/dummyGraphData';
+// import { GraphData } from '../interfaces/graph.interfaces';
+import { useGraphDataContext } from '../../../contexts/GraphDataContext';
 import { GraphData } from '../interfaces/graph.interfaces';
+import { normalizeGraph } from '../../utils/graphUtils';
 
 const Viewer = () => {
-	const [graphData, setGraphData] = useState<GraphData>(
-		defaultUndirectedGraphData
-	);
+	const { graphData, setGraphData } = useGraphDataContext();
 
 	const [width, setWidth] = useState(0);
 	const [height, setHeight] = useState(0);
@@ -45,31 +46,29 @@ const Viewer = () => {
 		return () => window.removeEventListener('resize', updateDimensions);
 	}, []);
 
+	// factory pattern avoids accidental reuse
+	const defaultsByMode: Record<string, () => GraphData> = {
+		undir_g: () => normalizeGraph(defaultUndirectedGraphData),
+		dir_g: () => normalizeGraph(defaultDirectedGraphData),
+		bst: () => normalizeGraph(defaultBinaryTreeData),
+		linked_list: () => normalizeGraph(defaultLinkedListData),
+		heap: () => normalizeGraph(defaultBinaryTreeData),
+		weighted_g: () => normalizeGraph(defaultWeightedGraphData),
+	};
+
 	useEffect(() => {
-		switch (mode) {
-			case 'undir_g':
-				setGraphData(defaultUndirectedGraphData);
-				break;
-			case 'dir_g':
-				setGraphData(defaultDirectedGraphData);
-				break;
-			case 'bst':
-				setGraphData(defaultBinaryTreeData);
-				break;
-			case 'linked_list':
-				setGraphData(defaultLinkedListData);
-				break;
-			case 'heap':
-				setGraphData(defaultBinaryTreeData);
-				break;
-			case 'weighted_g':
-				setGraphData(defaultWeightedGraphData);
-				break;
-			default:
-				setGraphData(defaultUndirectedGraphData);
-				break;
-		}
-	}, [mode]);
+		const make = defaultsByMode[mode] ?? defaultsByMode.undir_g;
+		setGraphData(make()); // new object every time
+	}, [mode, setGraphData]);
+
+	const graphForForce = useMemo(() => {
+		// deep clone so the forceGraph can mutate safely.
+		const g = normalizeGraph(graphData);
+		// structuredClone is supported in modern browsers; fallback to JSON if needed.
+		return typeof structuredClone === 'function'
+			? structuredClone(g)
+			: JSON.parse(JSON.stringify(g));
+	}, [graphData]);
 
 	const scaleMultiplier = 0.3;
 	const textScaleMultiplier = 0.2;
@@ -84,7 +83,7 @@ const Viewer = () => {
 					ref={boundingBoxRef}
 				>
 					<ForceGraph2D
-						graphData={graphData}
+						graphData={graphForForce}
 						width={width}
 						height={height}
 						backgroundColor="#181825"
@@ -99,16 +98,16 @@ const Viewer = () => {
 						// dagMode="null"
 						nodeCanvasObject={(node, ctx, globalScale) => {
 							if (node.x === undefined || node.y === undefined) return;
-							const label = node.id;
-							const baseFontSize = 16; // Base font size
+							const label = String(node.id ?? '');
+							const baseFontSize = 16;
 							const fontSize =
-								baseFontSize * Math.log(globalScale) * textScaleMultiplier; // Increase font size as you zoom in
+								baseFontSize * Math.log(globalScale) * textScaleMultiplier;
 							ctx.font = `${fontSize}px Sans-Serif`;
 							const textWidth = ctx.measureText(label).width;
-							const baseRadius = 10; // Base radius for the nodes
+							const baseRadius = 10;
 							const compRadius =
-								baseRadius * Math.log(globalScale) * scaleMultiplier; // Increase node size as you zoom in
-							const radius = Math.max(compRadius, textWidth); // Minimum node size
+								baseRadius * Math.log(globalScale) * scaleMultiplier;
+							const radius = Math.max(compRadius, textWidth);
 							// Draw the circle
 							ctx.beginPath();
 							ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
@@ -162,17 +161,11 @@ const Viewer = () => {
 					{/* <DragHandleIcon color={'white'} fontSize={16} m={4} /> */}
 					<VStack m={4} spacing={4}>
 						{mode == 'bst' ? (
-							<BinaryTreePanel
-								graphData={graphData}
-								setGraphData={setGraphData}
-							/>
+							<BinaryTreePanel />
 						) : mode == 'linked_list' ? (
-							<LinkedListPanel
-								graphData={graphData}
-								setGraphData={setGraphData}
-							/>
+							<LinkedListPanel />
 						) : (
-							<GraphPanel graphData={graphData} setGraphData={setGraphData} />
+							<GraphPanel />
 						)}
 					</VStack>
 				</Flex>
@@ -193,7 +186,7 @@ const Viewer = () => {
 						fontSize={16}
 						m={4}
 					/> */}
-					<GraphEditor graphData={graphData} setGraphData={setGraphData} />
+					<GraphEditor />
 				</Flex>
 			</Grid>
 		</Wrapper>

@@ -56,12 +56,12 @@ const defaultWeightedGraphData = {
 
 const defaultBinaryTreeData = {
 	nodes: [
-		{ id: '1', childrenCount: 2, index: 0 },
-		{ id: '2', childrenCount: 2, index: 1 },
-		{ id: '3', childrenCount: 1, index: 2 },
-		{ id: '4', childrenCount: 0, index: 3 },
-		{ id: '5', childrenCount: 0, index: 4 },
-		{ id: '6', childrenCount: 0, index: 6 },
+		{ id: '1', childrenCount: 2, binaryTreeNodeIndex: 0 },
+		{ id: '2', childrenCount: 2, binaryTreeNodeIndex: 1 },
+		{ id: '3', childrenCount: 1, binaryTreeNodeIndex: 2 },
+		{ id: '4', childrenCount: 0, binaryTreeNodeIndex: 3 },
+		{ id: '5', childrenCount: 0, binaryTreeNodeIndex: 4 },
+		{ id: '6', childrenCount: 0, binaryTreeNodeIndex: 6 },
 	],
 	links: [
 		{ source: '1', target: '2' },

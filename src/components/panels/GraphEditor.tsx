@@ -1,4 +1,11 @@
-import React, { useEffect, useState, useRef, SetStateAction } from 'react';
+import {
+	useEffect,
+	useState,
+	useRef,
+	SetStateAction,
+	useMemo,
+	useCallback,
+} from 'react';
 import { Box, Button, HStack, Textarea, useToast } from '@chakra-ui/react';
 import {
 	convertGraphDataToAdjacencyList,
@@ -6,89 +13,109 @@ import {
 	convertGraphDataToBinaryTreeArray,
 	convertAdjListWrapper,
 } from '../../utils/parser';
-import { GraphData } from '../interfaces/graph.interfaces';
+// GraphData type available via context where needed
 import { useMode } from '../../../contexts/ModeContext.hook';
+import { useGraphDataContext } from '../../../contexts/GraphDataContext';
 
-interface GraphEditorProps {
-	graphData: GraphData;
-	setGraphData: React.Dispatch<React.SetStateAction<GraphData>>;
-}
-
-const AdjacencyListEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
-	const [adjacencyListText, setAdjacencyListText] = useState(
-		JSON.stringify(convertGraphDataToAdjacencyList(graphData), null, 2)
-	);
+const AdjacencyListEditor = () => {
+	const { graphData, setGraphData } = useGraphDataContext();
 	const toast = useToast();
 
-	useEffect(() => {
-		// Only update the text if the change is external
-		setAdjacencyListText(
-			JSON.stringify(convertGraphDataToAdjacencyList(graphData), null, 2)
+	const formatted = useMemo(() => {
+		const fmted = JSON.stringify(
+			convertGraphDataToAdjacencyList(graphData),
+			null,
+			2
 		);
+		return fmted;
 	}, [graphData]);
 
-	const handleTextChange = (e: {
-		target: { value: SetStateAction<string> };
-	}) => {
-		setAdjacencyListText(e.target.value);
+	// Local draft only when editing
+	const [draft, setDraft] = useState<string>('');
+	const [dirty, setDirty] = useState(false);
+	const [parseError, setParseError] = useState<string | null>(null);
+
+	// What the user sees in the textarea:
+	const value = dirty ? draft : formatted;
+
+	const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		const v = e.target.value;
+		if (!dirty) setDirty(true);
+		setDraft(v);
+		setParseError(null);
 	};
 
-	const parseAdjacencyList = () => {
+	const commit = useCallback(() => {
+		const sourceText = dirty ? draft : formatted; // commit whatever is visible
 		try {
-			const data = convertAdjListWrapper(adjacencyListText);
-			setAdjacencyListText(
-				JSON.stringify(convertGraphDataToAdjacencyList(data), null, 2)
-			);
-			// Indicate that the next update is internal
-			setGraphData(data);
+			const nextGraph = convertAdjListWrapper(sourceText); // text -> A
+			setGraphData(nextGraph); // update canonical A
+			setDirty(false); // switch back to projection view
+			setParseError(null);
 			toast({
-				title: 'success',
-				description: 'graph updated!',
+				title: 'Success',
+				description: 'Graph updated',
 				status: 'success',
-				duration: 3000,
+				duration: 2000,
 				isClosable: true,
 			});
-		} catch (error) {
+		} catch (e: unknown) {
+			setParseError((e as Error).message ?? 'Invalid adjacency list');
 			toast({
-				title: 'error parsing :(',
-				description: (error as Error).message,
+				title: 'Parse error',
+				description: (e as Error).message ?? 'Invalid adjacency list',
 				status: 'error',
 				duration: 3000,
 				isClosable: true,
 			});
 		}
-	};
+	}, [dirty, draft, formatted, setGraphData, toast]);
 
 	useEffect(() => {
 		const handleCtrlS = (event: KeyboardEvent) => {
 			if ((event.ctrlKey || event.metaKey) && event.key === 's') {
 				event.preventDefault();
-				parseAdjacencyList();
+				commit();
 			}
 		};
 		window.addEventListener('keydown', handleCtrlS);
-		return () => {
-			window.removeEventListener('keydown', handleCtrlS);
-		};
-	});
+		return () => window.removeEventListener('keydown', handleCtrlS);
+	}, [commit]);
 
 	return (
-		<Box bg="#1e1e2e" color="#cdd6f4" borderRadius={'8px'} width={'100%'}>
+		<Box bg="#1e1e2e" color="#cdd6f4" borderRadius="8px" width="100%">
 			<Textarea
 				placeholder="Enter adjacency list here"
-				value={adjacencyListText}
-				onChange={handleTextChange}
+				value={value}
+				onChange={onChange}
 				minHeight="300px"
-				fontFamily={'Menlo, monospace'}
+				fontFamily="Menlo, monospace"
 			/>
+			{parseError && (
+				<Box mt={2} color="tomato" fontSize="sm">
+					{parseError}
+				</Box>
+			)}
 			<HStack m={3}>
-				<Button onClick={parseAdjacencyList}>Parse</Button>
+				<Button onClick={commit}>Parse</Button>
+				{dirty && (
+					<Button
+						variant="outline"
+						onClick={() => {
+							setDirty(false);
+							setParseError(null);
+						}}
+					>
+						Revert changes
+					</Button>
+				)}
 			</HStack>
 		</Box>
 	);
 };
 
-const BinaryTreeEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
+const BinaryTreeEditor = () => {
+	const { graphData, setGraphData } = useGraphDataContext();
 	const [binTreeText, setBinTreeText] = useState(
 		JSON.stringify(convertGraphDataToBinaryTreeArray(graphData))
 	);
@@ -175,21 +202,10 @@ const BinaryTreeEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
 	);
 };
 
-const GraphEditor = ({ graphData, setGraphData }: GraphEditorProps) => {
+const GraphEditor = () => {
 	const { mode } = useMode();
 
-	return (
-		<>
-			{mode == 'bst' ? (
-				<BinaryTreeEditor graphData={graphData} setGraphData={setGraphData} />
-			) : (
-				<AdjacencyListEditor
-					graphData={graphData}
-					setGraphData={setGraphData}
-				/>
-			)}
-		</>
-	);
+	return <>{mode == 'bst' ? <BinaryTreeEditor /> : <AdjacencyListEditor />}</>;
 };
 
 export default GraphEditor;

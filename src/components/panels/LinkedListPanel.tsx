@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Flex, Button, Stack, Text, Input, Checkbox } from '@chakra-ui/react';
-import { GraphData } from '../interfaces/graph.interfaces';
+import { useGraphDataContext } from '../../../contexts/GraphDataContext';
 
-interface PanelProps {
-	graphData: GraphData;
-	setGraphData?: React.Dispatch<React.SetStateAction<GraphData>>;
-}
-
-const LinkedListPanel = ({ graphData }: PanelProps) => {
+const LinkedListPanel = () => {
+	const { graphData, setGraphData: _setGraphData } = useGraphDataContext();
+	// _setGraphData is intentionally read from context for future operations
+	// and currently unused in this panel. Keep for consistency.
+	void _setGraphData;
 	const [source, setSource] = useState('');
 	const [target, setTarget] = useState('');
 	const [atTail, setAtTail] = useState(false);

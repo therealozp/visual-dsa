@@ -9,14 +9,11 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useMode } from '../../../contexts/ModeContext.hook';
-import { GraphData, GraphEdge } from '../interfaces/graph.interfaces';
+import { GraphEdge } from '../interfaces/graph.interfaces';
+import { useGraphDataContext } from '../../../contexts/GraphDataContext';
 
-interface PanelProps {
-	graphData: GraphData;
-	setGraphData: React.Dispatch<React.SetStateAction<GraphData>>;
-}
-
-const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
+const NodesPanel = () => {
+	const { graphData, setGraphData } = useGraphDataContext();
 	const toast = useToast();
 	const [nodeValue, setNodeValue] = useState('');
 
@@ -49,10 +46,7 @@ const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 			return;
 		}
 		setGraphData({
-			nodes: [
-				...graphData.nodes,
-				{ id: nodeValue, index: 0, childrenCount: 0 },
-			],
+			nodes: [...graphData.nodes, { id: nodeValue }],
 			links: [...graphData.links],
 		});
 		setNodeValue('');
@@ -120,7 +114,8 @@ const NodesPanel = ({ graphData, setGraphData }: PanelProps) => {
 	);
 };
 
-const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
+const EdgesPanel = () => {
+	const { graphData, setGraphData } = useGraphDataContext();
 	const [source, setSource] = useState('');
 	const [target, setTarget] = useState('');
 	const { mode } = useMode();
@@ -169,10 +164,8 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 			});
 		} else {
 			const newNodes = [...graphData.nodes];
-			if (!sourceNodeExists)
-				newNodes.push({ id: source, index: 0, childrenCount: 0 });
-			if (!targetNodeExists)
-				newNodes.push({ id: target, index: 0, childrenCount: 0 });
+			if (!sourceNodeExists) newNodes.push({ id: source });
+			if (!targetNodeExists) newNodes.push({ id: target });
 			setGraphData({
 				nodes: newNodes,
 				links: [...graphData.links, { source, target }],
@@ -222,11 +215,11 @@ const EdgesPanel = ({ graphData, setGraphData }: PanelProps) => {
 	);
 };
 
-const GraphPanel = ({ graphData, setGraphData }: PanelProps) => {
+const GraphPanel = () => {
 	return (
 		<>
-			<NodesPanel graphData={graphData} setGraphData={setGraphData} />
-			<EdgesPanel graphData={graphData} setGraphData={setGraphData} />
+			<NodesPanel />
+			<EdgesPanel />
 		</>
 	);
 };
